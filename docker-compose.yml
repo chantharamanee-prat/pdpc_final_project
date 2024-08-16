@@ -21,6 +21,8 @@ services:
 
   web:
     container_name: django-web
+    restart: always
+
     build:
       context: ./
       dockerfile: Dockerfile

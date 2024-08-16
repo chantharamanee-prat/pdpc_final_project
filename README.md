@@ -1,15 +1,17 @@
-# Create super user
-python manage.py createsuperuser
+# How to start the server
 
-# Default username and password
-admin user: admin
-password: admin
+## Start docker compose
 
-# How to create database migration
-## Use when the database schema in code was changed
+1. **Run:** docker-compose up -d
+2. Open http://localhost:8000
+3. If facing an error. follow steps below
 
-python manage.py makemigrations pdpc (project name)
-python manage.py migrate
+## Migrate database
+1. **Run:** docker-compose exec web python manage.py migrate
+2. Open http://localhost:8000 again
 
-# run project
-python manage.py runserver
+## Create admin user
+1. **Run:** docker-compose exec web python manage.py createsuperuser
+2. Open http://localhost:8000/admin
+3. Use username & password from (1)
+
