@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDPC Assessment Tool</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>PDPA Assessment Tool for Organisations (PATO)</h1>
+        </div>
+        <nav>
+            <!-- <ul>
+                <li><a href="#" class="feedback">Feedback</a></li>
+            </ul> -->
+        </nav>
+    </header>
+
+    <main>
+        <section class="assessment-categories">
+            <h2>Assessment Categories</h2>
+            <p>To begin, please select your assessment categories. 
+            {% comment %} Click <a href="#">here</a> for more information. {% endcomment %}
+            </p>
+
+            <div class="categories-grid">
+                {% for cat in all_cat %}
+                <a class="category-card" href="cat/{{cat.id}}/question?session={{session_id}}">
+                    <ion-icon class="icon-pdpc" name="{{cat.icon}}"></ion-icon>
+                    <span>{{cat.name}}</span>
+                </a>
+                {% endfor %}                
+            </div>
+
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Noom PDPC. All rights reserved.</p>
+    </footer>
+
+    <!-- Icons from https://ionic.io/ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

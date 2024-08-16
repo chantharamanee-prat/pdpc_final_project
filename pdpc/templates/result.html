@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDPC Assessment - Results</title>
+    <link rel="stylesheet" href="{% static 'css/result.css' %}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>PDPA Assessment Tool for Organisations</h1>
+            <a href="/" class="back-to-selection">Back to selection</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="results">
+            <div class="result-card">
+                <h2>Results for {{first_res.question.category.name}}</h2>
+                {% for resp in response %}
+
+                <div class="status implemented">Question {{resp.question.sequence}}</div>
+                <div class="achievement">
+                    <h3>{{resp.question.question}}</h3>
+                    <h4 class="first">Result: {{resp.answer.answer}} ({{resp.answer.score}})</h4>
+                    <p >
+                    {% if resp.answer.sequence == 1 %}
+                        {{resp.question.result_for_answer_1}}
+                    {% elif resp.answer.sequence == 2 %}
+                        {{resp.question.result_for_answer_2}}
+                    {% else %}
+                        {{resp.question.result_for_answer_3}}
+                    {% endif %}
+                    </p>
+                </div>
+                {% endfor %}
+
+            </div>
+            <div class="result-card">
+                <h2>Average Score: {{avg_score}}</h2>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Noom PDPC. All rights reserved.</p>
+    </footer>
+
+    <script src="{% static 'js/result.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDPC Assessment - Questions</title>
+    <link rel="stylesheet" href="{% static 'css/question.css' %}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>PDPA Assessment Tool for Organisations</h1>
+            <a href="/" class="back-to-selection">Back to selection</a>
+        </div>
+    </header>
+    <form action="/cat/{{category.id}}/question/" method="post">
+        {% csrf_token %}
+        <input hidden name="category" value="{{category.id}}">
+        <input hidden name="question" value="{{question.id}}">
+        <input hidden name="session" value="{{session}}">
+        <main>
+            <aside class="sidebar">
+                <h3>Category Selected</h3>
+                <ul>
+                    <li class="active"><ion-icon class="icon" name="{{category.icon}}"></ion-icon> {{category.name}} ({{question.sequence}}/{{all_question}})</li>
+                </ul>
+            </aside>
+            <section class="questionnaire">
+                <div class="progress">
+                    {% for p in progress %}
+                        <span class="{{p.class}}">{{p.number}}</span>
+                    {% endfor %}
+
+                </div>
+                <div class="question">
+                    <h2>{{display_question_number}}</h2>
+                    <p>{{question.question}}</p>
+                    <button class="show-more" type="button">Show More</button>
+                    <div class="detail-section" style="display: none;">
+                        <p>{{question.details}}</p>
+                    </div>
+                </div>
+                <div class="answers">
+                    {% for a in answer %}
+                    <label class="answer-option">
+                        <input type="radio" name="answer" value="{{a.id}}" id="answer-{{a.id}}" required>{{a.answer}}
+                    </label>
+                    {% endfor %}
+                </div>
+                <div class="additional-info">
+                    <label for="implemented-measures">List Implemented Measures</label>
+                    <textarea name="text_measurement" id="implemented-measures" placeholder="This could include policies, procedures, forms, response plans or contracts."></textarea>
+                </div>
+                <div class="actions">
+                    <button class="back" type="button" onclick="history.back()">Back to Previous</button>
+                    <button class="next" type="submit">Next</button>
+                </div>
+            </section>
+        </main>
+    </form>
+
+
+    <footer>
+        <p>&copy; 2024 Noom PDPC. All rights reserved.</p>
+    </footer>
+
+    <script src="{% static 'js/question.js' %}"></script>
+    <!-- Icons from https://ionic.io/ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>
