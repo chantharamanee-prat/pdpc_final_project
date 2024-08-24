@@ -6,16 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pdpc', '0003_tnxpdpcresult_text_measurement'),
+        ('pdpa', '0003_tnxpdparesult_text_measurement'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='tnxpdpcresult',
+            model_name='tnxpdparesult',
             name='session',
             field=models.CharField(max_length=256),
         ),
         migrations.DeleteModel(
-            name='TnxPdpcSession',
+            name='TnxpdpaSession',
         ),
     ]

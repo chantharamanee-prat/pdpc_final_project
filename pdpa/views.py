@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import loader
-from .models import MstPdpcCategory, MstPdpcQuestion, MstPdpcAnswer, TnxPdpcResult
+from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult
 import uuid
 
 def validate_session(request):
@@ -22,25 +22,25 @@ def clear_old_session(request):
         request.session['session_id'] = None
     
 
-def pdpc_main(request):
+def pdpa_main(request):
     session_id = validate_session(request)
 
     template = loader.get_template("main.html")
-    all_cat = MstPdpcCategory.objects.all().order_by("sequence").values()
+    all_cat = MstPdpaCategory.objects.all().order_by("sequence").values()
     context = {
         'session_id': session_id,
         'all_cat': all_cat
     }
     return HttpResponse(template.render(context, request))
 
-def pdpc_question(request, id):
+def pdpa_question(request, id):
     session_id = validate_session(request)
     question_template = loader.get_template("question.html")
     question_id_get = request.GET.get("question_id")
     session = request.GET.get("session") 
     question = None
 
-    all_question = MstPdpcQuestion.objects.select_related().filter(category=id).order_by("sequence").values()
+    all_question = MstPdpaQuestion.objects.select_related().filter(category=id).order_by("sequence").values()
 
     if request.method == "POST":
         category_id = int(request.POST.get("category",""))
@@ -48,11 +48,11 @@ def pdpc_question(request, id):
         answer_id = int(request.POST.get("answer", ""))
         text_measurement = request.POST.get("text_measurement")
 
-        relate_question = MstPdpcQuestion.objects.get(pk = question_id)
-        relate_answer = MstPdpcAnswer.objects.get(pk = answer_id)
+        relate_question = MstPdpaQuestion.objects.get(pk = question_id)
+        relate_answer = MstPdpaAnswer.objects.get(pk = answer_id)
 
         # save answer to DB
-        tnx_answer = TnxPdpcResult(
+        tnx_answer = TnxPdpaResult(
             session = session_id, 
             question = relate_question,
             answer = relate_answer,
@@ -80,16 +80,16 @@ def pdpc_question(request, id):
 
     else:
         if question_id_get is None:
-            question = MstPdpcQuestion.objects.select_related().filter(category=id).order_by("sequence").first()
+            question = MstPdpaQuestion.objects.select_related().filter(category=id).order_by("sequence").first()
         else:
-            question = MstPdpcQuestion.objects.get(pk = question_id_get)
+            question = MstPdpaQuestion.objects.get(pk = question_id_get)
  
         if question is None:
             return redirect("/404.html")
 
-        category = MstPdpcCategory.objects.get(pk=id)
+        category = MstPdpaCategory.objects.get(pk=id)
         
-        answer = MstPdpcAnswer.objects.all().order_by("sequence").values()
+        answer = MstPdpaAnswer.objects.all().order_by("sequence").values()
 
         display_question_number = f"0{question.sequence}" if question.sequence < 10 else question.sequence
         
@@ -115,7 +115,7 @@ def pdpc_question(request, id):
 
         return HttpResponse(question_template.render(question_context, request))
 
-def pdpc_result(request,id):
+def pdpa_result(request,id):
     # session_id = validate_session(request)
     session_id = request.GET.get("session") 
 
@@ -123,7 +123,7 @@ def pdpc_result(request,id):
     clear_old_session(request)
 
     template = loader.get_template("result.html")
-    all_result = TnxPdpcResult.objects.all().filter(session= session_id)
+    all_result = TnxPdpaResult.objects.all().filter(session= session_id)
     
     sum_score = 0
     for res in all_result:

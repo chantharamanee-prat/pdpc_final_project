@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='MstPdpcAnswer',
+            name='MstpdpaAnswer',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('answer', models.CharField(max_length=50)),
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='MstPdpcCategory',
+            name='MstpdpaCategory',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=50)),
@@ -31,47 +31,47 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='TnxPdpcSession',
+            name='TnxpdpaSession',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('session', models.CharField(max_length=50)),
             ],
         ),
         migrations.CreateModel(
-            name='MstPdpcQuestion',
+            name='MstpdpaQuestion',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('question', models.TextField()),
                 ('detials', models.TextField()),
                 ('sequence', models.IntegerField(default=None)),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpc.mstpdpccategory')),
+                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpa.mstpdpacategory')),
             ],
         ),
         migrations.CreateModel(
-            name='MstPdpcQuestionAnswerResult',
+            name='MstpdpaQuestionAnswerResult',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('result', models.TextField(default=None)),
                 ('script_path', models.TextField(default=None)),
-                ('answer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpc.mstpdpcanswer')),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpc.mstpdpcquestion')),
+                ('answer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpa.mstpdpaanswer')),
+                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpa.mstpdpaquestion')),
             ],
         ),
         migrations.CreateModel(
-            name='TnxPdpcResult',
+            name='TnxpdpaResult',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpc.mstpdpcanswer')),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpc.mstpdpcquestion')),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpc.tnxpdpcsession')),
+                ('answer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpa.mstpdpaanswer')),
+                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpa.mstpdpaquestion')),
+                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpa.tnxpdpasession')),
             ],
         ),
         migrations.CreateModel(
-            name='TnxPdpcMeasure',
+            name='TnxpdpaMeasure',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('measure', models.TextField()),
-                ('result', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpc.tnxpdpcresult')),
+                ('result', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pdpa.tnxpdparesult')),
             ],
         ),
     ]

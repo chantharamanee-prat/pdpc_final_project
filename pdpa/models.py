@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-class MstPdpcCategory(models.Model):
+class MstPdpaCategory(models.Model):
     name = models.CharField(max_length=50)
     icon = models.CharField(max_length=50)
     sequence = models.IntegerField(default=None)
@@ -9,8 +9,8 @@ class MstPdpcCategory(models.Model):
     def __str__(self) -> str:
         return f"{self.name}"
 
-class MstPdpcQuestion(models.Model):
-    category = models.ForeignKey(MstPdpcCategory, on_delete=models.CASCADE)
+class MstPdpaQuestion(models.Model):
+    category = models.ForeignKey(MstPdpaCategory, on_delete=models.CASCADE)
     question = models.TextField()
     details = models.TextField()
     sequence = models.IntegerField(default=None)
@@ -27,7 +27,7 @@ class MstPdpcQuestion(models.Model):
     def __str__(self) -> str:
         return f"{self.question[:100]}"
 
-class MstPdpcAnswer(models.Model):
+class MstPdpaAnswer(models.Model):
     answer = models.CharField(max_length=50)
     sequence = models.IntegerField(default=None)
     score = models.IntegerField(default=0)
@@ -36,9 +36,9 @@ class MstPdpcAnswer(models.Model):
         return f"{self.answer}"
 
 
-class TnxPdpcResult(models.Model):
+class TnxPdpaResult(models.Model):
     session = models.CharField(max_length=256)
-    question = models.ForeignKey(MstPdpcQuestion, on_delete=models.CASCADE)
-    answer = models.ForeignKey(MstPdpcAnswer, on_delete=models.CASCADE)
+    question = models.ForeignKey(MstPdpaQuestion, on_delete=models.CASCADE)
+    answer = models.ForeignKey(MstPdpaAnswer, on_delete=models.CASCADE)
     text_measurement = models.TextField(default=None, null=True, blank=True)
 

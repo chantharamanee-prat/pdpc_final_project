@@ -6,12 +6,12 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pdpc', '0002_rename_detials_mstpdpcquestion_details'),
+        ('pdpa', '0002_rename_detials_mstpdpaquestion_details'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tnxpdpcresult',
+            model_name='tnxpdparesult',
             name='text_measurement',
             field=models.TextField(default=None),
         ),

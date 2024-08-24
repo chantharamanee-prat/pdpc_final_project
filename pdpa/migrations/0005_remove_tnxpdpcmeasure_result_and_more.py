@@ -6,53 +6,53 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pdpc', '0004_alter_tnxpdpcresult_session_delete_tnxpdpcsession'),
+        ('pdpa', '0004_alter_tnxpdparesult_session_delete_tnxpdpasession'),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='tnxpdpcmeasure',
+            model_name='tnxpdpameasure',
             name='result',
         ),
         migrations.AddField(
-            model_name='mstpdpcquestion',
+            model_name='mstpdpaquestion',
             name='result_for_answer_1',
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='mstpdpcquestion',
+            model_name='mstpdpaquestion',
             name='result_for_answer_2',
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='mstpdpcquestion',
+            model_name='mstpdpaquestion',
             name='result_for_answer_3',
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='mstpdpcquestion',
+            model_name='mstpdpaquestion',
             name='script_for_answer_1',
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='mstpdpcquestion',
+            model_name='mstpdpaquestion',
             name='script_for_answer_2',
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='mstpdpcquestion',
+            model_name='mstpdpaquestion',
             name='script_for_answer_3',
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AlterField(
-            model_name='tnxpdpcresult',
+            model_name='tnxpdparesult',
             name='text_measurement',
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.DeleteModel(
-            name='MstPdpcQuestionAnswerResult',
+            name='MstpdpaQuestionAnswerResult',
         ),
         migrations.DeleteModel(
-            name='TnxPdpcMeasure',
+            name='TnxpdpaMeasure',
         ),
     ]
