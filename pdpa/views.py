@@ -1,8 +1,15 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.template import loader
-from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult
+from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser
 import uuid
+from django.contrib.auth.hashers import make_password
+from .forms import CustomLoginForm
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
+
 
 def validate_session(request):
     pre_session_id = str(uuid.uuid4())
@@ -20,8 +27,52 @@ def validate_session(request):
 def clear_old_session(request):
     if 'session_id' in request.session:
         request.session['session_id'] = None
-    
 
+
+def sign_up(request: HttpRequest):
+    template = loader.get_template("sign_up.html")
+
+    if request.method == 'POST':
+        username = str(request.POST.get("username", ""))
+        password = str(request.POST.get("password", ""))
+        server_url = str(request.POST.get("server_url", ""))
+        ssh_user = str(request.POST.get("ssh_user", ""))
+        ssh_password = str(request.POST.get("ssh_password", ""))
+
+        tnx_user = TnxPdpaUser(
+            username = username,
+            password = make_password(password),
+            server_url = server_url,
+            ssh_user = ssh_user,
+            ssh_password = ssh_password,
+        )
+
+        tnx_user.save()
+
+        return redirect("/sign-in")
+    else:
+        return HttpResponse(template.render({}, request))
+    
+def sign_in(request):
+    template = loader.get_template("sign_in.html")
+
+    if request.method == 'POST':
+        form = CustomLoginForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('/')  # Redirect to a home page or dashboard
+            else:
+                messages.error(request, 'Invalid username or password.')
+    else:
+        form = CustomLoginForm()
+
+    return HttpResponse(template.render({'form': form}, request))
+
+@login_required
 def pdpa_main(request):
     session_id = validate_session(request)
 
@@ -33,6 +84,7 @@ def pdpa_main(request):
     }
     return HttpResponse(template.render(context, request))
 
+@login_required
 def pdpa_question(request, id):
     session_id = validate_session(request)
     question_template = loader.get_template("question.html")
@@ -115,6 +167,7 @@ def pdpa_question(request, id):
 
         return HttpResponse(question_template.render(question_context, request))
 
+@login_required
 def pdpa_result(request,id):
     # session_id = validate_session(request)
     session_id = request.GET.get("session") 
@@ -141,8 +194,15 @@ def pdpa_result(request,id):
     }
     return HttpResponse(template.render(context, request))
 
-def not_found(request):
-    session_id = validate_session(request)
-    template = loader.get_template("404.html")
+def sign_out(request):
+    # sign user out
+    logout(request)
 
-    return HttpResponse(template.render())
+    # Redirect to sign-in page
+    return redirect('/sign-in')
+
+def handler404(request, exception):
+    template = loader.get_template("404.html")
+    
+    return HttpResponse(template.render({}, request))
+

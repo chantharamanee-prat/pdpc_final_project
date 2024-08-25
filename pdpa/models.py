@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser
 # Create your models here.
 class MstPdpaCategory(models.Model):
     name = models.CharField(max_length=50)
@@ -42,3 +42,9 @@ class TnxPdpaResult(models.Model):
     answer = models.ForeignKey(MstPdpaAnswer, on_delete=models.CASCADE)
     text_measurement = models.TextField(default=None, null=True, blank=True)
 
+
+class TnxPdpaUser(AbstractUser):
+    server_url = models.CharField(max_length=255)
+    ssh_user = models.CharField(max_length=255)
+    ssh_password = models.CharField(max_length=255)
+    
