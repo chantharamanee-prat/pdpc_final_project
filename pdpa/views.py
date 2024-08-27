@@ -10,24 +10,19 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import os
+from django.db.models import Subquery
 
-def validate_session(request):
-    pre_session_id = str(uuid.uuid4())
-    if 'session_id' in request.session:
-        session_id = request.session['session_id']
-        if session_id is None:
-            request.session['session_id'] = pre_session_id
-        else:
-            return session_id
-    else:
-        request.session['session_id'] = pre_session_id
 
-    return pre_session_id
+def validate_user(request):
+    pre_user_id = None
+    try :
+        pre_user_id = request.user.id
+    except: 
+        print("An Exception occured")
+        
+    print(pre_user_id)
 
-def clear_old_session(request):
-    if 'session_id' in request.session:
-        request.session['session_id'] = None
-
+    return pre_user_id
 
 def sign_up(request: HttpRequest):
     template = loader.get_template("sign_up.html")
@@ -55,6 +50,7 @@ def sign_up(request: HttpRequest):
     
 def sign_in(request):
     template = loader.get_template("sign_in.html")
+    session = validate_user(request)
 
     if request.method == 'POST':
         form = CustomLoginForm(request, data=request.POST)
@@ -67,29 +63,30 @@ def sign_in(request):
                 return redirect('/')  # Redirect to a home page or dashboard
             else:
                 messages.error(request, 'Invalid username or password.')
-    else:
+    elif session is not None:
+        return redirect("/")
+    else:  
         form = CustomLoginForm()
+
 
     return HttpResponse(template.render({'form': form}, request))
 
 @login_required
 def pdpa_main(request):
-    session_id = validate_session(request)
+    user_id = validate_user(request)
 
     template = loader.get_template("main.html")
     all_cat = MstPdpaCategory.objects.all().order_by("sequence").values()
     context = {
-        'session_id': session_id,
         'all_cat': all_cat
     }
     return HttpResponse(template.render(context, request))
 
 @login_required
 def pdpa_question(request, id):
-    session_id = validate_session(request)
+    user_id = validate_user(request)
     question_template = loader.get_template("question.html")
     question_id_get = request.GET.get("question_id")
-    session = request.GET.get("session") 
     question = None
 
     all_question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").values()
@@ -102,10 +99,11 @@ def pdpa_question(request, id):
 
         relate_question = MstPdpaQuestion.objects.get(pk = question_id)
         relate_answer = MstPdpaAnswer.objects.get(pk = answer_id)
+        user = TnxPdpaUser.objects.get(pk = user_id)
 
         # save answer to DB
         tnx_answer = TnxPdpaResult(
-            session = session_id, 
+            user = user, 
             question = relate_question,
             answer = relate_answer,
             text_measurement = text_measurement
@@ -116,20 +114,28 @@ def pdpa_question(request, id):
         # find next question
         counter = 0
         for a in all_question.iterator():
-            print(f'id = {a["id"]}')
-            print(f"counter = {counter}")
             if int(a['id']) == question_id:
                 break
             counter +=1
 
         if counter < all_question.count() -1:
-            return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter + 1]['id']}&session={session_id}")
+            return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter + 1]['id']}")
         
         else:
-            return redirect(f"/sub-cat/{id}/result/?session={session_id}")
+            return redirect(f"/sub-cat/{id}/result/")
 
 
     else:
+        old_result = TnxPdpaResult.objects.select_related().filter(user = user_id, question__sub_category__id = id).values('question_id')
+
+        # redirect if contain old result
+        if old_result.count() == all_question.count():
+            return redirect(f"/sub-cat/{id}/result/")
+        elif old_result:
+            unanswered_question = MstPdpaQuestion.objects.exclude(id__in=Subquery(old_result)).first()
+            if unanswered_question:
+                question_id_get = unanswered_question.id
+    
         if question_id_get is None:
             question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").first()
         else:
@@ -138,6 +144,8 @@ def pdpa_question(request, id):
  
         if question is None:
             return redirect("/404.html")
+        
+
 
         sub_category = MstPdpaSubCategory.objects.get(pk=id)
         
@@ -147,7 +155,7 @@ def pdpa_question(request, id):
         
         progress = []
 
-        for i in range(0,all_question.count()):
+        for i in range(0, all_question.count()):
             progress.append({
                 "number": i + 1,
                 "class": "active" if i + 1 == question.sequence else "inactive"
@@ -164,28 +172,23 @@ def pdpa_question(request, id):
             'answer': answer,
             'is_first': question.sequence == 1,
             'progress': progress,
-            'session': session,
         }
 
         return HttpResponse(question_template.render(question_context, request))
 
 @login_required
 def pdpa_result(request,id):
-    # session_id = validate_session(request)
-    session_id = request.GET.get("session") 
-
-    # clear old session
-    clear_old_session(request)
+    user_id = validate_user(request)
 
     template = loader.get_template("result.html")
-    all_result = TnxPdpaResult.objects.all().filter(session= session_id)
+    all_result = TnxPdpaResult.objects.all().filter(user = user_id)
     
     sum_score = 0
     for res in all_result:
         print(res.answer.score)
         sum_score += res.answer.score
 
-    avg_score = sum_score/ all_result.count()
+    avg_score = sum_score / all_result.count()
 
     context = {
         'first_res': all_result.first(),

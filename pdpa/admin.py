@@ -21,7 +21,7 @@ class MstPdpaAnswerAdmin(admin.ModelAdmin):
     list_display = ("name","answer", "sequence", "score")
 
 class TnxPdpaResultAdmin(admin.ModelAdmin):
-    list_display = ("session", "question", "answer")
+    list_display = ("user", "question", "answer")
 
 class TnxPdpaUserAdmin(admin.ModelAdmin):
     list_display = ("username", "server_url", "ssh_user", "ssh_password")

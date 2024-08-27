@@ -18,7 +18,7 @@
     <main>
         <section class="results">
             <div class="result-card">
-                <h2>Results for {{first_res.question.category.name}}</h2>
+                <h2>Results for {{first_res.question.sub_category.name}}</h2>
                 {% for resp in response %}
 
                 <div class="status implemented">Question {{resp.question.sequence}}</div>
@@ -26,12 +26,8 @@
                     <h3>{{resp.question.question}}</h3>
                     <h4 class="first">Result: {{resp.answer.answer}} ({{resp.answer.score}})</h4>
                     <p >
-                    {% if resp.answer.sequence == 1 %}
-                        {{resp.question.result_for_answer_1}}
-                    {% elif resp.answer.sequence == 2 %}
-                        {{resp.question.result_for_answer_2}}
-                    {% else %}
-                        {{resp.question.result_for_answer_3}}
+                    {% if resp.answer.result_text %}
+                        {{resp.answer.result_text}}
                     {% endif %}
                     </p>
                 </div>
