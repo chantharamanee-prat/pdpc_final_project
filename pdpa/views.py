@@ -95,7 +95,7 @@ def pdpa_question(request, id):
     all_question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").values()
 
     if request.method == "POST":
-        category_id = int(request.POST.get("category",""))
+        sub_category_id = int(request.POST.get("sub_category",""))
         question_id = int(request.POST.get("question", ""))
         answer_id = int(request.POST.get("answer", ""))
         text_measurement = request.POST.get("text_measurement")
@@ -123,10 +123,10 @@ def pdpa_question(request, id):
             counter +=1
 
         if counter < all_question.count() -1:
-            return redirect(f"/cat/{category_id}/question/?question_id={all_question[counter + 1]['id']}&session={session_id}")
+            return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter + 1]['id']}&session={session_id}")
         
         else:
-            return redirect(f"/cat/{id}/result/?session={session_id}")
+            return redirect(f"/sub-cat/{id}/result/?session={session_id}")
 
 
     else:
@@ -134,11 +134,12 @@ def pdpa_question(request, id):
             question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").first()
         else:
             question = MstPdpaQuestion.objects.get(pk = question_id_get)
+            
  
         if question is None:
             return redirect("/404.html")
 
-        category = MstPdpaCategory.objects.get(pk=id)
+        sub_category = MstPdpaSubCategory.objects.get(pk=id)
         
         answer = question.answers.all()
 
@@ -152,8 +153,10 @@ def pdpa_question(request, id):
                 "class": "active" if i + 1 == question.sequence else "inactive"
             })
 
+        print(question.file.name)
+
         question_context = {
-            'category': category,
+            'sub_category': sub_category,
             'question_sequence': question.sequence,
             'all_question': all_question.count(),
             'display_question_number': display_question_number,

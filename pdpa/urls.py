@@ -7,7 +7,7 @@ urlpatterns = [
     path('sign-in', views.sign_in, name='sign_in'),
     path('sign-out', views.sign_out, name='sign_out'),
     path('sub-cat/<int:id>/question/', views.pdpa_question, name="pdpa_question"),
-    path('cat/<int:id>/result/', views.pdpa_result, name="pdpa_result"),
+    path('sub-cat/<int:id>/result/', views.pdpa_result, name="pdpa_result"),
     path('sub-cat/<int:id>/', views.fetch_sub_cat, name="fetch_sub_cat"),
     path('uploads/<str:filename>', views.download_file, name='download_file'),
 ]

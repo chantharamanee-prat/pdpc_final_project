@@ -181,6 +181,11 @@ main {
     margin-top: 10px;
 }
 
+.additional-info a {
+    margin-top: 10px;
+    color: red;
+}
+
 .actions {
     display: flex;
     justify-content: space-between;
