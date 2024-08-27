@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import os
 from django.db.models import Subquery
+import paramiko
 
 
 def validate_user(request):
@@ -103,13 +104,17 @@ def pdpa_question(request, id):
         script_result = None
 
         if relate_answer.script:
-            print(relate_answer.script)
+            script_result = run_ssh_command(user.ssh_server, user.ssh_port, user.ssh_user, user.ssh_password, relate_answer.script)
+            print(script_result)
+            script_result = int(script_result)
 
         # check exist answer
         exist_answer = TnxPdpaResult.objects.filter(user = user_id, question = relate_question,).first()
 
         if exist_answer:
             exist_answer.answer = relate_answer
+            exist_answer.script_result = script_result
+
             exist_answer.save()
         else:
             # save answer to DB
@@ -117,7 +122,8 @@ def pdpa_question(request, id):
                 user = user, 
                 question = relate_question,
                 answer = relate_answer,
-                text_measurement = text_measurement
+                text_measurement = text_measurement,
+                script_result = script_result
             )
             tnx_answer.save()
 
@@ -236,7 +242,7 @@ def download_file(request, filename):
 def fetch_sub_cat(request, id):
     user_id = validate_user(request)
     all_sub_cat = MstPdpaSubCategory.objects.select_related().filter(category=id).order_by("sequence")
-    
+
     completed_sub_categories = []
 
     for sub_category in all_sub_cat:
@@ -280,4 +286,33 @@ def handler404(request, exception):
     template = loader.get_template("404.html")
     
     return HttpResponse(template.render({}, request))
+
+
+def run_ssh_command(hostname, port, username, password, command):
+    try:
+        # Create an SSH client instance
+        ssh = paramiko.SSHClient()
+        
+        # Automatically add the server's host key (dangerous in production)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        
+        # Connect to the server
+        ssh.connect(hostname, port, username, password)
+        
+        # Execute the command
+        stdin, stdout, stderr = ssh.exec_command(command)
+        
+        # Print command output and errors
+        output = stdout.read().decode()
+        print("Output:")
+        print(output)
+        
+        print("Errors:")
+        print(stderr.read().decode())
+
+        return output
+        
+    finally:
+        # Close the SSH connection
+        ssh.close()
 

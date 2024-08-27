@@ -65,15 +65,17 @@ class MstPdpaQuestion(models.Model):
         super().delete(*args, **kwargs)
 
 class TnxPdpaUser(AbstractUser):
-    server_url = models.CharField(max_length=255)
+    ssh_server = models.CharField(max_length=255)
+    ssh_port = models.IntegerField(default=22)
     ssh_user = models.CharField(max_length=255)
     ssh_password = models.CharField(max_length=255)
-    
+
 class TnxPdpaResult(models.Model):
     user = models.ForeignKey(TnxPdpaUser, on_delete=models.CASCADE)
     question = models.ForeignKey(MstPdpaQuestion, on_delete=models.CASCADE)
     answer = models.ForeignKey(MstPdpaAnswer, on_delete=models.CASCADE)
     text_measurement = models.TextField(default=None, null=True, blank=True)
+    script_result = models.IntegerField(default=None, null=True, blank=True)
 
 
 

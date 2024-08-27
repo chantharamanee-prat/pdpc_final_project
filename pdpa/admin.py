@@ -26,7 +26,7 @@ class TnxPdpaResultAdmin(admin.ModelAdmin):
     actions = [csvexport]
 
 class TnxPdpaUserAdmin(admin.ModelAdmin):
-    list_display = ("username", "server_url", "ssh_user", "ssh_password")
+    list_display = ("username", "ssh_server", "ssh_port","ssh_user", "ssh_password")
 
 admin.site.register(TnxPdpaUser, TnxPdpaUserAdmin)
 
