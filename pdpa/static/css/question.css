@@ -184,6 +184,7 @@ main {
 .additional-info a {
     margin-top: 10px;
     color: red;
+    text-decoration: none;
 }
 
 .actions {

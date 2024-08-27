@@ -1,12 +1,14 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDPA Assessment - Questions</title>
     <link rel="stylesheet" href="{% static 'css/question.css' %}">
 </head>
+
 <body>
     <header>
         <div class="logo">
@@ -18,18 +20,18 @@
         {% csrf_token %}
         <input hidden name="sub_category" value="{{sub_category.id}}">
         <input hidden name="question" value="{{question.id}}">
-        <input hidden name="session" value="{{session}}">
         <main>
             <aside class="sidebar">
                 <h3>Category Selected</h3>
                 <ul>
-                    <li class="active"><ion-icon class="icon" name="{{sub_category.icon}}"></ion-icon> {{sub_category.name}} ({{question.sequence}}/{{all_question}})</li>
+                    <li class="active"><ion-icon class="icon" name="{{sub_category.icon}}"></ion-icon>
+                        {{sub_category.name}} ({{question.sequence}}/{{all_question}})</li>
                 </ul>
             </aside>
             <section class="questionnaire">
                 <div class="progress">
                     {% for p in progress %}
-                        <span class="{{p.class}}">{{p.number}}</span>
+                    <span class="{{p.class}}">{{p.number}}</span>
                     {% endfor %}
 
                 </div>
@@ -44,25 +46,43 @@
                 <div class="answers">
                     {% for a in answer %}
                     <label class="answer-option">
-                        <input type="radio" name="answer" value="{{a.id}}" id="answer-{{a.id}}" required>{{a.answer}}
+                        {% if exist_answer.answer.id == a.id %}
+                        <input type="radio" name="answer" value="{{a.id}}" id="answer-{{a.id}}" required checked>{{a.answer}}
+                        {% else %}
+                        <input type="radio" name="answer" value="{{a.id}}" id="answer-{{a.id}}" required  >{{a.answer}}
+                        {% endif %}
+
                     </label>
                     {% endfor %}
                 </div>
                 <div class="additional-info">
                     <label for="implemented-measures">List Implemented Measures</label>
-                    <textarea name="text_measurement" id="implemented-measures" placeholder="This could include policies, procedures, forms, response plans or contracts."></textarea>
+                    <textarea name="text_measurement" id="implemented-measures"
+                        placeholder="This could include policies, procedures, forms, response plans or contracts."></textarea>
 
-                    {% if question.file.name  %}
-                    <a href="/{{question.file.name}}">Attachment File </a>
+                    {% if question.file.name %}
+
+                    <a href="/{{question.file.name}}">
+                        <ion-icon name="document-attach-outline"></ion-icon>
+                        <span> Attachment <span></a>
                     {% endif %}
                 </div>
                 <div class="actions">
-                    <button class="back" type="button" onclick="history.back()">Back to Previous</button>
+                    {% if previous_question.id %}
+                    <a style="visibility: visible;" href="/sub-cat/{{sub_category.id}}/question/?question_id={{previous_question.id}}">
+                        <button class="back" type="button">Back to Previous</button></a>
+                    {% else %}
+                    <a style="visibility: hidden;" href="/sub-cat/{{sub_category.id}}/question/?question_id={{previous_question.id}}">
+                        <button class="back" type="button">Back to Previous</button></a>
+                    {% endif %}
+                    
                     <button class="next" type="submit">Next</button>
                 </div>
             </section>
         </main>
     </form>
+
+    <pre>{{exist_answer.answer.id}}</pre>
 
 
     <footer>
@@ -74,4 +94,5 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </body>
+
 </html>

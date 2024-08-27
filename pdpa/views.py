@@ -73,7 +73,6 @@ def sign_in(request):
 
 @login_required
 def pdpa_main(request):
-    user_id = validate_user(request)
 
     template = loader.get_template("main.html")
     all_cat = MstPdpaCategory.objects.all().order_by("sequence").values()
@@ -101,15 +100,26 @@ def pdpa_question(request, id):
         relate_answer = MstPdpaAnswer.objects.get(pk = answer_id)
         user = TnxPdpaUser.objects.get(pk = user_id)
 
-        # save answer to DB
-        tnx_answer = TnxPdpaResult(
-            user = user, 
-            question = relate_question,
-            answer = relate_answer,
-            text_measurement = text_measurement
-        )
+        script_result = None
 
-        tnx_answer.save()
+        if relate_answer.script:
+            print(relate_answer.script)
+
+        # check exist answer
+        exist_answer = TnxPdpaResult.objects.filter(user = user_id, question = relate_question,).first()
+
+        if exist_answer:
+            exist_answer.answer = relate_answer
+            exist_answer.save()
+        else:
+            # save answer to DB
+            tnx_answer = TnxPdpaResult(
+                user = user, 
+                question = relate_question,
+                answer = relate_answer,
+                text_measurement = text_measurement
+            )
+            tnx_answer.save()
 
         # find next question
         counter = 0
@@ -129,9 +139,9 @@ def pdpa_question(request, id):
         old_result = TnxPdpaResult.objects.select_related().filter(user = user_id, question__sub_category__id = id).values('question_id')
 
         # redirect if contain old result
-        if old_result.count() == all_question.count():
+        if old_result.count() == all_question.count() and all_question.count() > 0:
             return redirect(f"/sub-cat/{id}/result/")
-        elif old_result:
+        elif old_result and question_id_get is None:
             unanswered_question = MstPdpaQuestion.objects.exclude(id__in=Subquery(old_result)).first()
             if unanswered_question:
                 question_id_get = unanswered_question.id
@@ -144,8 +154,6 @@ def pdpa_question(request, id):
  
         if question is None:
             return redirect("/404.html")
-        
-
 
         sub_category = MstPdpaSubCategory.objects.get(pk=id)
         
@@ -161,7 +169,15 @@ def pdpa_question(request, id):
                 "class": "active" if i + 1 == question.sequence else "inactive"
             })
 
-        print(question.file.name)
+        previous_q = MstPdpaQuestion.objects.select_related().filter(sub_category=id, sequence=question.sequence - 1).values()
+
+        previous = None
+
+        if previous_q:
+            previous = previous_q[0]
+        
+        # check exist answer
+        exist_answer = TnxPdpaResult.objects.filter(user = user_id, question = question).first()
 
         question_context = {
             'sub_category': sub_category,
@@ -170,8 +186,9 @@ def pdpa_question(request, id):
             'display_question_number': display_question_number,
             'question': question,
             'answer': answer,
-            'is_first': question.sequence == 1,
+            'previous_question': previous,
             'progress': progress,
+            'exist_answer': exist_answer
         }
 
         return HttpResponse(question_template.render(question_context, request))
@@ -181,7 +198,11 @@ def pdpa_result(request,id):
     user_id = validate_user(request)
 
     template = loader.get_template("result.html")
-    all_result = TnxPdpaResult.objects.all().filter(user = user_id)
+    all_question = MstPdpaQuestion.objects.select_related().filter(sub_category=id)
+    all_result = TnxPdpaResult.objects.all().filter(user = user_id, question__sub_category__id = id)
+
+    if not all_result or all_result.count() < all_question.count():
+        return redirect(f"/sub-cat/{id}/question/")
     
     sum_score = 0
     for res in all_result:
@@ -213,9 +234,36 @@ def download_file(request, filename):
 
 @login_required
 def fetch_sub_cat(request, id):
-    all_sub_cat = MstPdpaSubCategory.objects.select_related().filter(category=id).order_by("sequence").values()
+    user_id = validate_user(request)
+    all_sub_cat = MstPdpaSubCategory.objects.select_related().filter(category=id).order_by("sequence")
+    
+    completed_sub_categories = []
 
-    return JsonResponse(list(all_sub_cat), safe=False)
+    for sub_category in all_sub_cat:
+        # Get questions for the sub-category
+        questions = MstPdpaQuestion.objects.filter(sub_category=sub_category.id)
+
+        # Get count of questions
+        total_questions = questions.count()
+
+        # Get count of answered questions for the given user
+        answered_questions_count = TnxPdpaResult.objects.filter(
+            question__in=questions, user_id=user_id
+        ).values('question').distinct().count()
+
+        # Check if all questions are answered
+        completed_sub_categories.append({
+            'id': sub_category.id,
+            'name': sub_category.name,
+            'icon': sub_category.icon,
+            'sequence': sub_category.sequence,
+            'total_question': total_questions,
+            'total_answer' :answered_questions_count,
+        })
+
+    print(completed_sub_categories)
+
+    return JsonResponse(completed_sub_categories, safe=False)
 
 def sign_out(request):
     # sign user out
@@ -223,6 +271,10 @@ def sign_out(request):
 
     # Redirect to sign-in page
     return redirect('/sign-in')
+
+def not_found (request):
+     template = loader.get_template("404.html")
+     return HttpResponse(template.render())
 
 def handler404(request, exception):
     template = loader.get_template("404.html")

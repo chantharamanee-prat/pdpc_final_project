@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'pdpa',
+    'csvexport'
 ]
 
 MIDDLEWARE = [
@@ -151,4 +152,5 @@ AUTH_USER_MODEL = 'pdpa.TnxPdpaUser'
 LOGIN_REDIRECT_URL = '/' 
 LOGIN_URL = '/sign-in' 
 
-
+CSV_EXPORT_REFERENCE_DEPTH = 3
+CSV_EXPORT_EMPTY_VALUE = ''

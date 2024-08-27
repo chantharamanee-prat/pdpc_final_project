@@ -68,6 +68,7 @@ class TnxPdpaUser(AbstractUser):
     server_url = models.CharField(max_length=255)
     ssh_user = models.CharField(max_length=255)
     ssh_password = models.CharField(max_length=255)
+    
 class TnxPdpaResult(models.Model):
     user = models.ForeignKey(TnxPdpaUser, on_delete=models.CASCADE)
     question = models.ForeignKey(MstPdpaQuestion, on_delete=models.CASCADE)

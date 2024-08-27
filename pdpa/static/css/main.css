@@ -67,6 +67,11 @@ main {
   margin-bottom: 20px;
 }
 
+.assessment-categories h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
 .assessment-categories p {
   font-size: 1rem;
   margin-bottom: 40px;
@@ -167,7 +172,7 @@ footer {
 }
 
 .sub-category {
-  font-size: 25px;
+  /* font-size: 25px; */
   color: #003366;
   display: block;
   transition: 0.3s;
@@ -179,19 +184,25 @@ footer {
   cursor: pointer;
 }
 
-/* .sub-category span {
-  font-weight: bold;
-  font-size: 1rem;
-  color: #333;
-  margin-left: 10px;
-  color: #003366;
-} */
+.sub-category .sized {
+  display: inline-block;
+  width: 10px;
+}
 .sidenav .closebtn {
   position: absolute;
   top: 0;
   right: 25px;
   font-size: 36px;
   margin-left: 50px;
+  color: #003366;
+}
+
+.finished {
+  color: gray;
+}
+.sum_question {
+  display: inline-block;
+  margin-left: 4px;
 }
 
 @media screen and (max-height: 450px) {

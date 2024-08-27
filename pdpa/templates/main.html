@@ -49,7 +49,7 @@
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeSidebar()">&times;</a>
         <section class="assessment-categories">
-            <h2 id="mainCateName">Categories</h2>
+            <h3 id="mainCateName">Categories</h3>
 
             <div id="subCatContent"></div>
             
@@ -71,16 +71,18 @@
 
             for (const subCat of result) {
                 var achor = document.createElement("a")
-                achor.className = "sub-category"
+                achor.className = `sub-category ${subCat.total_question === subCat.total_answer && subCat.total_question > 0 ? "finished": ""}`
                 achor.href = `sub-cat/${subCat.id}/question`
 
-                achor.innerHTML = `<ion-icon class="icon-pdpa" name="${subCat.icon}"></ion-icon><span>${subCat.name}</span>`
+                achor.innerHTML = `<ion-icon class="icon-pdpa" name="${subCat.icon}"></ion-icon><span class="sized"></span><span>${subCat.name}</span>`
+
+                if(subCat.total_question > 0) {
+                    achor.innerHTML += `<span class="sum_question"> (${subCat.total_answer}/ ${subCat.total_question}) </span>`
+                }
 
                 subCateContent.appendChild(achor)
             }
 
-
-            // <a class="category-card" href="cat/{{cat.id}}/question?session={{session_id}}">
             document.getElementById("mySidenav").style.width = "50%";
         }
 

@@ -24,3 +24,4 @@ urlpatterns = [
     path('', include("pdpa.urls")),
     path('admin/', admin.site.urls),
 ] + static(os.path.join(settings.BASE_DIR, '/'), document_root="/")
+handler404 = "pdpa.views.handler404"

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser, MstPdpaSubCategory
 from .forms import CustomMstPdpaQuestionForm
+from csvexport.actions import csvexport
 
 # Register your models here.
 
@@ -22,6 +23,7 @@ class MstPdpaAnswerAdmin(admin.ModelAdmin):
 
 class TnxPdpaResultAdmin(admin.ModelAdmin):
     list_display = ("user", "question", "answer")
+    actions = [csvexport]
 
 class TnxPdpaUserAdmin(admin.ModelAdmin):
     list_display = ("username", "server_url", "ssh_user", "ssh_password")
