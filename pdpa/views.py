@@ -1,15 +1,15 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, Http404, FileResponse, JsonResponse
 from django.template import loader
-from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser
+from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser, MstPdpaSubCategory
 import uuid
 from django.contrib.auth.hashers import make_password
 from .forms import CustomLoginForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
-
+from django.conf import settings
+import os
 
 def validate_session(request):
     pre_session_id = str(uuid.uuid4())
@@ -92,7 +92,7 @@ def pdpa_question(request, id):
     session = request.GET.get("session") 
     question = None
 
-    all_question = MstPdpaQuestion.objects.select_related().filter(category=id).order_by("sequence").values()
+    all_question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").values()
 
     if request.method == "POST":
         category_id = int(request.POST.get("category",""))
@@ -129,10 +129,9 @@ def pdpa_question(request, id):
             return redirect(f"/cat/{id}/result/?session={session_id}")
 
 
-
     else:
         if question_id_get is None:
-            question = MstPdpaQuestion.objects.select_related().filter(category=id).order_by("sequence").first()
+            question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").first()
         else:
             question = MstPdpaQuestion.objects.get(pk = question_id_get)
  
@@ -141,7 +140,7 @@ def pdpa_question(request, id):
 
         category = MstPdpaCategory.objects.get(pk=id)
         
-        answer = MstPdpaAnswer.objects.all().order_by("sequence").values()
+        answer = question.answers.all()
 
         display_question_number = f"0{question.sequence}" if question.sequence < 10 else question.sequence
         
@@ -185,14 +184,32 @@ def pdpa_result(request,id):
 
     avg_score = sum_score/ all_result.count()
 
-    
-
     context = {
         'first_res': all_result.first(),
         'response': all_result,
         'avg_score': avg_score
     }
     return HttpResponse(template.render(context, request))
+
+@login_required
+def download_file(request, filename):
+    # Construct the full file path
+    file_path = os.path.join(settings.BASE_DIR, 'uploads', filename)
+    
+    # Check if the file exists
+    if not os.path.isfile(file_path):
+        raise Http404("File does not exist.")
+    
+    # Return the file response
+    response = FileResponse(open(file_path, 'rb'), content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+@login_required
+def fetch_sub_cat(request, id):
+    all_sub_cat = MstPdpaSubCategory.objects.select_related().filter(category=id).order_by("sequence").values()
+
+    return JsonResponse(list(all_sub_cat), safe=False)
 
 def sign_out(request):
     # sign user out

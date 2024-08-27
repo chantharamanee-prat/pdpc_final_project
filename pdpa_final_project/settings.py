@@ -150,3 +150,5 @@ AUTH_USER_MODEL = 'pdpa.TnxPdpaUser'
 
 LOGIN_REDIRECT_URL = '/' 
 LOGIN_URL = '/sign-in' 
+
+
