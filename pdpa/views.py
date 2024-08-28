@@ -29,16 +29,26 @@ def sign_up(request: HttpRequest):
     template = loader.get_template("sign_up.html")
 
     if request.method == 'POST':
+
         username = str(request.POST.get("username", ""))
         password = str(request.POST.get("password", ""))
-        server_url = str(request.POST.get("server_url", ""))
+        ssh_server = str(request.POST.get("ssh_server", ""))
+        ssh_port = str(request.POST.get("ssh_port", ""))
         ssh_user = str(request.POST.get("ssh_user", ""))
         ssh_password = str(request.POST.get("ssh_password", ""))
+
+        existing_user = TnxPdpaUser.objects.filter(username = username)
+
+        if existing_user:
+           return HttpResponse(template.render({
+               "username_already_exist": "Username already exist."
+           }, request))
 
         tnx_user = TnxPdpaUser(
             username = username,
             password = make_password(password),
-            server_url = server_url,
+            ssh_server = ssh_server,
+            ssh_port = ssh_port,
             ssh_user = ssh_user,
             ssh_password = ssh_password,
         )

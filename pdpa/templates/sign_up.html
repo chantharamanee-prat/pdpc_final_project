@@ -20,10 +20,12 @@
         <section class="register">
             <h2>Sign Up</h2>
             <form action="/sign-up" method="post">
+
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username:</label>
                     <input type="text" id="username" name="username" required>
+                    <p id="usernameValidator" style="color: red;">{{username_already_exist}} </p>
                 </div>
                 <div class="form-group">
                     <label for="password">Password:</label>
@@ -37,8 +39,12 @@
                 <div class="separator"></div> <!-- Separator between sections -->
 
                 <div class="form-group">
-                    <label for="server-url">Server URL:</label>
-                    <input type="url" id="server-url" name="server_url" required>
+                    <label for="server-url">SSH Server:</label>
+                    <input type="text" id="server-url" name="ssh_server" required>
+                </div>
+                <div class="form-group">
+                    <label for="server-port">SSH Port:</label>
+                    <input type="text" id="server-port" name="ssh_port" required>
                 </div>
                 <div class="form-group">
                     <label for="server-username">SSH Username:</label>

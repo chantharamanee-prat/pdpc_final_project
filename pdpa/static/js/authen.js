@@ -9,3 +9,8 @@ function togglePassword(fieldId) {
     }
 }
 
+
+document.getElementById("username").addEventListener("focus", () => {
+    document.getElementById("usernameValidator").innerHTML = ""
+
+});
