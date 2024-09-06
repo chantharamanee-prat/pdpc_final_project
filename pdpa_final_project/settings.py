@@ -42,6 +42,7 @@ MYSQL_PORT = str(os.getenv("MYSQL_PORT"))
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_volt.apps.AdminVoltConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -140,6 +141,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "pdpa/static"),
 )
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -151,6 +154,9 @@ AUTH_USER_MODEL = 'pdpa.TnxPdpaUser'
 
 LOGIN_REDIRECT_URL = '/' 
 LOGIN_URL = '/sign-in' 
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 CSV_EXPORT_REFERENCE_DEPTH = 3
 CSV_EXPORT_EMPTY_VALUE = ''
