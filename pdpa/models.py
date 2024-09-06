@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import os
-# Create your models here.
+
 class MstPdpaCategory(models.Model):
     name = models.CharField(max_length=50)
     icon = models.CharField(max_length=50)
@@ -9,6 +9,9 @@ class MstPdpaCategory(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+    class Meta:
+        verbose_name = "PDPA Category"  # Singular name
+        verbose_name_plural = "PDPA Categories"  # Plural name
     
 class MstPdpaSubCategory(models.Model):
     category = models.ForeignKey(MstPdpaCategory, on_delete=models.CASCADE)
@@ -18,6 +21,10 @@ class MstPdpaSubCategory(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+    
+    class Meta:
+        verbose_name = "PDPA Subcategory"  # Singular name
+        verbose_name_plural = "PDPA Subcategories"  # Plural name
 
 
 class MstPdpaAnswer(models.Model):
@@ -30,6 +37,10 @@ class MstPdpaAnswer(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+    
+    class Meta:
+        verbose_name = "PDPA Answer"  # Singular name
+        verbose_name_plural = "PDPA Answers"  # Plural name
 
 
 class MstPdpaQuestion(models.Model):
@@ -44,6 +55,10 @@ class MstPdpaQuestion(models.Model):
 
     def __str__(self) -> str:
         return f"{self.question[:100]}"
+    
+    class Meta:
+        verbose_name = "PDPA Question"  # Singular name
+        verbose_name_plural = "PDPA Questions"  # Plural name
     
     def get_category_name(self):
         return self.sub_category.category.name
@@ -77,6 +92,6 @@ class TnxPdpaResult(models.Model):
     text_measurement = models.TextField(default=None, null=True, blank=True)
     script_result = models.IntegerField(default=None, null=True, blank=True)
 
-
-
-    
+    class Meta:
+        verbose_name = "Transaction PDPA Result"  # Singular name
+        verbose_name_plural = "Transaction PDPA Results"  # Plural name
