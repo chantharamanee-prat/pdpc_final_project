@@ -288,6 +288,13 @@ def sign_out(request):
     # Redirect to sign-in page
     return redirect('/sign-in')
 
+def sign_out_admin(request):
+    # sign user out
+    logout(request)
+
+    # Redirect to admin page
+    return redirect('/admin')
+
 def not_found (request):
      template = loader.get_template("404.html")
      return HttpResponse(template.render())
