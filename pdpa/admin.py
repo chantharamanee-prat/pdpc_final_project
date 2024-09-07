@@ -50,25 +50,10 @@ class TnxPdpaUserAdmin(admin.ModelAdmin):
     list_display = ("username", "ssh_server", "ssh_port","ssh_user", "ssh_password")
 
 
-class MyAdminSite(admin.AdminSite):
-    site_header = 'PDPA Administration'
-    site_title = 'PDPA Admin'
-    index_title = 'Welcome to the PDPA Admin Panel'
+admin.site.register(TnxPdpaUser, TnxPdpaUserAdmin)
 
-    def get_app_list(self, request):
-        # Override this method to change the order of models
-        app_list = super().get_app_list(request)
-        for app in app_list:
-            if app['app_label'] == 'pdpa':  # Replace 'your_app_name' with your actual app name
-                app['models'] = sorted(app['models'], key=lambda x: ['MstPdpaAnswer', 'MstPdpaCategory', 'MstPdpaSubCategory', 'MstPdpaQuestion', 'TnxPdpaResult', 'TnxPdpaUser'].index(x['object_name']))
-        return app_list
-    
-my_admin_site = MyAdminSite(name='myadmin')
-
-my_admin_site.register(TnxPdpaUser, TnxPdpaUserAdmin)
-
-my_admin_site.register(MstPdpaCategory, MstPdpaCategoryAdmin)
-my_admin_site.register(MstPdpaSubCategory, MstPdpaSubCategoryAdmin)
-my_admin_site.register(MstPdpaQuestion, MstPdpaQuestionAdmin)
-my_admin_site.register(MstPdpaAnswer, MstPdpaAnswerAdmin)
-my_admin_site.register(TnxPdpaResult, TnxPdpaResultAdmin)
+admin.site.register(MstPdpaCategory, MstPdpaCategoryAdmin)
+admin.site.register(MstPdpaSubCategory, MstPdpaSubCategoryAdmin)
+admin.site.register(MstPdpaQuestion, MstPdpaQuestionAdmin)
+admin.site.register(MstPdpaAnswer, MstPdpaAnswerAdmin)
+admin.site.register(TnxPdpaResult, TnxPdpaResultAdmin)
