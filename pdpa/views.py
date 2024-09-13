@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpRequest, Http404, FileResponse, JsonResponse
 from django.template import loader
-from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser, MstPdpaSubCategory
+from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser, MstPdpaSubCategory, TnxResultDocument
 import uuid
 from django.contrib.auth.hashers import make_password
 from .forms import CustomLoginForm
@@ -12,6 +12,7 @@ from django.conf import settings
 import os
 from django.db.models import Subquery
 import paramiko
+from .forms import TnxResultDocumentForm
 
 
 def validate_user(request):
@@ -111,6 +112,8 @@ def pdpa_question(request, id):
         relate_answer = MstPdpaAnswer.objects.get(pk = answer_id)
         user = TnxPdpaUser.objects.get(pk = user_id)
 
+        uploaded_documents = request.FILES.getlist('file')
+
         script_result = None
 
         if relate_answer.script:
@@ -126,6 +129,10 @@ def pdpa_question(request, id):
             exist_answer.script_result = script_result
 
             exist_answer.save()
+            if len(uploaded_documents) > 0 :
+                files = request.FILES.getlist("file")
+                for file in files:
+                    TnxResultDocument(result = exist_answer, file=file)
         else:
             # save answer to DB
             tnx_answer = TnxPdpaResult(
@@ -136,6 +143,10 @@ def pdpa_question(request, id):
                 script_result = script_result
             )
             tnx_answer.save()
+            if len(uploaded_documents) > 0:
+                files = request.FILES.getlist("file")
+                for file in files:
+                    TnxResultDocument(result = tnx_answer, file=file)
 
         # find next question
         counter = 0
@@ -195,6 +206,8 @@ def pdpa_question(request, id):
         # check exist answer
         exist_answer = TnxPdpaResult.objects.filter(user = user_id, question = question).first()
 
+        document_form = TnxResultDocumentForm()
+
         question_context = {
             'sub_category': sub_category,
             'question_sequence': question.sequence,
@@ -204,7 +217,8 @@ def pdpa_question(request, id):
             'answer': answer,
             'previous_question': previous,
             'progress': progress,
-            'exist_answer': exist_answer
+            'exist_answer': exist_answer,
+            'document_form': document_form,
         }
 
         return HttpResponse(question_template.render(question_context, request))
@@ -237,7 +251,7 @@ def pdpa_result(request,id):
 @login_required
 def download_file(request, filename):
     # Construct the full file path
-    file_path = os.path.join(settings.BASE_DIR, 'uploads', filename)
+    file_path = os.path.join(settings.MEDIA_ROOT, 'uploads', filename)
     
     # Check if the file exists
     if not os.path.isfile(file_path):

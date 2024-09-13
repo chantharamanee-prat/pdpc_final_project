@@ -1,9 +1,13 @@
 from django.contrib import admin
-from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser, MstPdpaSubCategory
+from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser, MstPdpaSubCategory, TnxResultDocument
 from .forms import CustomMstPdpaQuestionForm
 
 from django.http import HttpResponse
 import csv
+
+class TnxResultDocumentInline(admin.TabularInline):
+    model = TnxResultDocument
+    extra = 1  # Number of empty forms to display
 
 class ExportCsvMixin:
     def export_as_csv(self, request, queryset):
@@ -43,6 +47,7 @@ class MstPdpaAnswerAdmin(admin.ModelAdmin):
     list_display = ("name","answer", "sequence", "score")
 
 class TnxPdpaResultAdmin(admin.ModelAdmin, ExportCsvMixin):
+    inlines = [TnxResultDocumentInline]
     list_display = ("user", "question", "answer")
     actions = ['export_as_csv']
 

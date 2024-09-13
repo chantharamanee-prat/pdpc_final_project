@@ -43,13 +43,16 @@ class MstPdpaAnswer(models.Model):
         verbose_name_plural = "PDPA Answers"  # Plural name
 
 
+
+
 class MstPdpaQuestion(models.Model):
     sub_category = models.ForeignKey(MstPdpaSubCategory, on_delete=models.CASCADE)
     question = models.TextField()
     details = models.TextField()
     sequence = models.IntegerField(default=None)
+    is_request_file = models.BooleanField(default=False, null=True, blank=True)
 
-    file = models.FileField(upload_to='uploads/', blank=True, null=True)
+    # file = models.FileField(upload_to='uploads/', blank=True, null=True)
 
     answers = models.ManyToManyField(MstPdpaAnswer, related_name="questions")
 
@@ -65,19 +68,19 @@ class MstPdpaQuestion(models.Model):
     
     get_category_name.short_description = 'Category'
 
-    def save(self, *args, **kwargs):
-        if self.pk:  # Check if the instance already exists
-            old_instance = MstPdpaQuestion.objects.get(pk=self.pk)
-            if old_instance.file and old_instance.file != self.file:
-                if os.path.isfile(old_instance.file.path):
-                    os.remove(old_instance.file.path)
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.pk:  # Check if the instance already exists
+    #         old_instance = MstPdpaQuestion.objects.get(pk=self.pk)
+    #         if old_instance.file and old_instance.file != self.file:
+    #             if os.path.isfile(old_instance.file.path):
+    #                 os.remove(old_instance.file.path)
+    #     super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        if self.file:
-            if os.path.isfile(self.file.path):
-                os.remove(self.file.path)
-        super().delete(*args, **kwargs)
+    # def delete(self, *args, **kwargs):
+    #     if self.file:
+    #         if os.path.isfile(self.file.path):
+    #             os.remove(self.file.path)
+    #     super().delete(*args, **kwargs)
 
 class TnxPdpaUser(AbstractUser):
     ssh_server = models.CharField(max_length=255)
@@ -95,3 +98,9 @@ class TnxPdpaResult(models.Model):
     class Meta:
         verbose_name = "Transaction PDPA Result"  # Singular name
         verbose_name_plural = "Transaction PDPA Results"  # Plural name
+
+class TnxResultDocument(models.Model):
+    result = models.ForeignKey(TnxPdpaResult, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='uploads/', blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+

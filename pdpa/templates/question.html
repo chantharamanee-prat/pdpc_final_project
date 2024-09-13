@@ -59,13 +59,15 @@
                     <label for="implemented-measures">List Implemented Measures</label>
                     <textarea name="text_measurement" id="implemented-measures"
                         placeholder="This could include policies, procedures, forms, response plans or contracts."></textarea>
-
-                    {% if question.file.name %}
+                    {% if question.is_request_file is True %}
+                        {{document_form.as_p}}
+                    {% endif %}
+                    {% comment %} {% if question.file.name %}
 
                     <a href="/{{question.file.name}}">
                         <ion-icon name="document-attach-outline"></ion-icon>
                         <span> Attachment <span></a>
-                    {% endif %}
+                    {% endif %} {% endcomment %}
                 </div>
                 <div class="actions">
                     {% if previous_question.id %}
