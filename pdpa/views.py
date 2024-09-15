@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpRequest, Http404, FileResponse, JsonResponse
 from django.template import loader
 from .models import MstPdpaCategory, MstPdpaQuestion, MstPdpaAnswer, TnxPdpaResult, TnxPdpaUser, MstPdpaSubCategory, TnxResultDocument
@@ -100,121 +100,116 @@ def pdpa_question(request, id):
     question_id_get = request.GET.get("question_id")
     question = None
 
+    # Fetch all questions related to the subcategory
     all_question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").values()
-    print(all_question)
 
     if request.method == "POST":
-        sub_category_id = int(request.POST.get("sub_category",""))
+        sub_category_id = int(request.POST.get("sub_category", ""))
         question_id = int(request.POST.get("question", ""))
         answer_id = int(request.POST.get("answer", ""))
         text_measurement = request.POST.get("text_measurement")
 
-        relate_question = MstPdpaQuestion.objects.get(pk = question_id)
-        relate_answer = MstPdpaAnswer.objects.get(pk = answer_id)
-        user = TnxPdpaUser.objects.get(pk = user_id)
+        relate_question = MstPdpaQuestion.objects.get(pk=question_id)
+        relate_answer = MstPdpaAnswer.objects.get(pk=answer_id)
+        user = TnxPdpaUser.objects.get(pk=user_id)
 
         doc = TnxResultDocumentForm(request.POST, request.FILES)
-        
-        print("related question")
-        print(relate_question)
 
         script_result = None
 
         if relate_answer.script:
-            script_result = run_ssh_command(user.ssh_server, user.ssh_port, user.ssh_user, user.ssh_password, relate_answer.script)
+            script_result = run_ssh_command(
+                user.ssh_server, user.ssh_port, user.ssh_user, user.ssh_password, relate_answer.script
+            )
             script_result = int(script_result)
 
-        # check exist answer
-        exist_answer = TnxPdpaResult.objects.filter(user = user_id, question = relate_question,).first()
+        # Check if the answer already exists
+        exist_answer = TnxPdpaResult.objects.filter(user=user_id, question=relate_question).first()
 
         if exist_answer:
             exist_answer.answer = relate_answer
             exist_answer.script_result = script_result
-
             exist_answer.save()
-            print("exist anser")
-            print(exist_answer)
+
             if doc.is_valid():
                 uploaded_file = doc.cleaned_data['file']
-                new_doc = TnxResultDocument(result = exist_answer, file=uploaded_file)
+                new_doc = TnxResultDocument(result=exist_answer, file=uploaded_file)
                 new_doc.save()
-                    
+
         else:
-            # save answer to DB
+            # Save new answer
             tnx_answer = TnxPdpaResult(
-                user = user, 
-                question = relate_question,
-                answer = relate_answer,
-                text_measurement = text_measurement,
-                script_result = script_result
+                user=user,
+                question=relate_question,
+                answer=relate_answer,
+                text_measurement=text_measurement,
+                script_result=script_result
             )
             tnx_answer.save()
+
             if doc.is_valid():
                 uploaded_file = doc.cleaned_data['file']
-                new_doc = TnxResultDocument(result = tnx_answer, file=uploaded_file)
+                new_doc = TnxResultDocument(result=tnx_answer, file=uploaded_file)
                 new_doc.save()
 
-        # find next question
+        # Find next question after the current one
         counter = 0
         for a in all_question.iterator():
-            counter +=1
+            counter += 1
             if int(a['id']) == question_id:
                 break
 
-        print("counter")
-        print(counter)
-        print(all_question.count())
-
-        if counter <= all_question.count():
-            return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter - 1]['id']}")
-        
+        if counter < all_question.count():
+            return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter]['id']}")
         else:
             return redirect(f"/sub-cat/{id}/result/")
-
 
     else:
-        old_result = TnxPdpaResult.objects.select_related().filter(user = user_id, question__sub_category__id = id).values('question_id')
+        # Get old results (answered questions)
+        old_result = TnxPdpaResult.objects.select_related().filter(user=user_id, question__sub_category__id=id).values('question_id')
 
-        # redirect if contain old result
+        # If all questions are answered, redirect to result
         if old_result.count() == all_question.count() and all_question.count() > 0:
             return redirect(f"/sub-cat/{id}/result/")
-        elif old_result and question_id_get is None:
-            unanswered_question = MstPdpaQuestion.objects.exclude(id__in=Subquery(old_result)).first()
+
+        # Find first unanswered question if user comes back and no question_id is provided
+        if old_result and question_id_get is None:
+            unanswered_question = MstPdpaQuestion.objects.filter(
+                sub_category__id=id
+            ).exclude(id__in=Subquery(old_result)).order_by("sequence").first()
             if unanswered_question:
                 question_id_get = unanswered_question.id
-    
+
+        # If no unanswered question is found, get the first question in the sequence
         if question_id_get is None:
-            question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").first()
+            unanswered_question = MstPdpaQuestion.objects.exclude(
+                id__in=Subquery(TnxPdpaResult.objects.filter(user=user_id, question__sub_category__id=id).values('question_id'))
+            ).filter(sub_category=id).order_by("sequence").first()
+
+            # If no unanswered question is found, redirect to the result page
+            if unanswered_question:
+                question = unanswered_question
+            else:
+                return redirect(f"/sub-cat/{id}/result/")
         else:
-            question = MstPdpaQuestion.objects.get(pk = question_id_get)
-            
- 
+            question = MstPdpaQuestion.objects.get(pk=question_id_get)
+
         if question is None:
             return redirect("/404.html")
 
         sub_category = MstPdpaSubCategory.objects.get(pk=id)
-        
         answer = question.answers.all()
 
         display_question_number = f"0{question.sequence}" if question.sequence < 10 else question.sequence
-        
-        progress = []
 
-        for i in range(0, all_question.count()):
-            progress.append({
-                "number": i + 1,
-                "class": "active" if i + 1 == question.sequence else "inactive"
-            })
+        progress = [{"number": i + 1, "class": "active" if i + 1 == question.sequence else "inactive"} for i in range(all_question.count())]
 
         previous_q = MstPdpaQuestion.objects.select_related().filter(sub_category=id, sequence=question.sequence - 1).values()
 
-        previous = None
+        previous = previous_q[0] if previous_q else None
 
-        if previous_q:
-            previous = previous_q[0]
-        
-        # check exist answer
-        exist_answer = TnxPdpaResult.objects.filter(user = user_id, question = question).first()
+        # Check if there is an existing answer for the current question
+        exist_answer = TnxPdpaResult.objects.filter(user=user_id, question=question).first()
 
         document_form = TnxResultDocumentForm()
 
@@ -232,7 +227,7 @@ def pdpa_question(request, id):
         }
 
         return HttpResponse(question_template.render(question_context, request))
-
+       
 @login_required
 def pdpa_result(request,id):
     user_id = validate_user(request)

@@ -32,9 +32,5 @@ class CustomMstPdpaQuestionForm(forms.ModelForm):
 
 
 class TnxResultDocumentForm(forms.Form):
-    # file = MultipleFileField(label='Select files', required=True)
-    # class Meta:
-    #     model = TnxResultDocument
-    #     fields = ['file']
 
     file = forms.FileField(label="Select a file")
