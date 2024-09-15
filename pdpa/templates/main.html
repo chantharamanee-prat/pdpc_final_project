@@ -62,13 +62,12 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <script>
         async function openSidebar(cateId, cateName) {
-            console.log(cateId);
             document.getElementById("mainCateName").innerText = cateName;
             // fetch sub cate
             var result = await fetch(`/sub-cat/${cateId}/`).then(res => res.json())
-            console.log(result)
 
             var subCateContent = document.getElementById("subCatContent");
+            subCatContent.innerHTML = "";
 
             for (const subCat of result) {
                 var achor = document.createElement("a")
@@ -84,7 +83,12 @@
                 subCateContent.appendChild(achor)
             }
 
-            document.getElementById("mySidenav").style.width = "50%";
+            document.getElementById("mySidenav").style.width = "30%";
+            let resultA = document.createElement("a")
+            resultA.className = 'sub-category';
+            resultA.innerHTML = `<ion-icon class="icon-pdpa" name="document-outline"></ion-icon><span class="sized"></span><span>Result</span>`;
+            resultA.href = `/cat/${cateId}/result`;
+            subCatContent.appendChild(resultA)
         }
 
         function closeSidebar() {

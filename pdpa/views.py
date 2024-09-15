@@ -101,6 +101,7 @@ def pdpa_question(request, id):
     question = None
 
     all_question = MstPdpaQuestion.objects.select_related().filter(sub_category=id).order_by("sequence").values()
+    print(all_question)
 
     if request.method == "POST":
         sub_category_id = int(request.POST.get("sub_category",""))
@@ -114,13 +115,13 @@ def pdpa_question(request, id):
 
         doc = TnxResultDocumentForm(request.POST, request.FILES)
         
-        print("upload doc")
+        print("related question")
+        print(relate_question)
 
         script_result = None
 
         if relate_answer.script:
             script_result = run_ssh_command(user.ssh_server, user.ssh_port, user.ssh_user, user.ssh_password, relate_answer.script)
-            print(script_result)
             script_result = int(script_result)
 
         # check exist answer
@@ -131,6 +132,8 @@ def pdpa_question(request, id):
             exist_answer.script_result = script_result
 
             exist_answer.save()
+            print("exist anser")
+            print(exist_answer)
             if doc.is_valid():
                 uploaded_file = doc.cleaned_data['file']
                 new_doc = TnxResultDocument(result = exist_answer, file=uploaded_file)
@@ -148,18 +151,22 @@ def pdpa_question(request, id):
             tnx_answer.save()
             if doc.is_valid():
                 uploaded_file = doc.cleaned_data['file']
-                new_doc = TnxResultDocument(result = exist_answer, file=uploaded_file)
+                new_doc = TnxResultDocument(result = tnx_answer, file=uploaded_file)
                 new_doc.save()
 
         # find next question
         counter = 0
         for a in all_question.iterator():
+            counter +=1
             if int(a['id']) == question_id:
                 break
-            counter +=1
 
-        if counter < all_question.count() -1:
-            return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter + 1]['id']}")
+        print("counter")
+        print(counter)
+        print(all_question.count())
+
+        if counter <= all_question.count():
+            return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter - 1]['id']}")
         
         else:
             return redirect(f"/sub-cat/{id}/result/")
@@ -297,6 +304,32 @@ def fetch_sub_cat(request, id):
     print(completed_sub_categories)
 
     return JsonResponse(completed_sub_categories, safe=False)
+
+@login_required
+def pdpa_cat_result(request, id):
+    user_id = validate_user(request)
+
+    template = loader.get_template("result_cat.html")
+    category = MstPdpaCategory.objects.get(id = id)
+    all_question = MstPdpaQuestion.objects.select_related().filter(sub_category__category__id=id)
+    all_result = TnxPdpaResult.objects.all().filter(user = user_id, question__sub_category__category__id = id)
+
+    # if not all_result or all_result.count() < all_question.count():
+    #     return redirect(f"/sub-cat/{id}/question/")
+    
+    sum_score = 0
+    for res in all_result:
+        sum_score += res.answer.score
+
+    avg_score = sum_score / all_result.count()
+
+    context = {
+        'category' : category,
+        'response': all_result,
+        'avg_score': avg_score
+    }
+    print(context)
+    return HttpResponse(template.render(context, request))
 
 def sign_out(request):
     # sign user out

@@ -1,0 +1,31 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "pythonPath": "D:/Workspace/project/myenv/Scripts/python", // path to your virtual environment's python
+            "program": "D:/Workspace/project/myenv/Scripts/pdpc_final_project/manage.py",
+            "args": [
+                "runserver"
+            ],
+            "env": {
+                "PYTHONUNBUFFERED": "1",
+                "SECRET_KEY": "django-insecure-b4p#_cc1epe)&s!^otv8u0ix9kx2_ydp2p!@hge%v^6pj36(1@",
+                "MYSQL_ROOT_PASSWORD": "root",
+                "MYSQL_HOST": "localhost",
+                "MYSQL_DATABASE": "pdpa",
+                "MYSQL_USER": "newuser",
+                "MYSQL_PASSWORD": "password",
+                "MYSQL_PORT": "3306",
+                "DEBUG": "true"
+            },
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
