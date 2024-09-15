@@ -169,4 +169,4 @@ CSV_EXPORT_LINETERMINATOR = r'\n'
 CSV_EXPORT_QUOTING = 'QUOTE_ALL'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

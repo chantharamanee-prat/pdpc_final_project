@@ -19,13 +19,10 @@ class MultipleFileField(forms.FileField):
         if isinstance(data, (list, tuple)):
             result = [single_file_clean(d, initial) for d in data]
         else:
-            result = single_file_clean(data, initial)
+            result = [single_file_clean(data, initial)]
         return result
 
 class CustomMstPdpaQuestionForm(forms.ModelForm):
-
-    # file = forms.FileField(required=False, help_text="Upload a file.")
-
     class Meta:
         model = MstPdpaQuestion
         widgets = {
@@ -34,14 +31,10 @@ class CustomMstPdpaQuestionForm(forms.ModelForm):
         fields = '__all__'
 
 
-class TnxResultDocumentForm(forms.ModelForm):
-    file = MultipleFileField(label='Select files', required=True)
-    class Meta:
-        model = TnxResultDocument
-        fields = ['file']
-        # widgets = {
-        #     'file': forms.FileInput(attrs={'multiple': True}),
-        # }
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.fields['file'].required = True  
+class TnxResultDocumentForm(forms.Form):
+    # file = MultipleFileField(label='Select files', required=True)
+    # class Meta:
+    #     model = TnxResultDocument
+    #     fields = ['file']
+
+    file = forms.FileField(label="Select a file")

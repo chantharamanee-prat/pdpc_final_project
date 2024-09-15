@@ -112,7 +112,9 @@ def pdpa_question(request, id):
         relate_answer = MstPdpaAnswer.objects.get(pk = answer_id)
         user = TnxPdpaUser.objects.get(pk = user_id)
 
-        uploaded_documents = request.FILES.getlist('file')
+        doc = TnxResultDocumentForm(request.POST, request.FILES)
+        
+        print("upload doc")
 
         script_result = None
 
@@ -129,10 +131,11 @@ def pdpa_question(request, id):
             exist_answer.script_result = script_result
 
             exist_answer.save()
-            if len(uploaded_documents) > 0 :
-                files = request.FILES.getlist("file")
-                for file in files:
-                    TnxResultDocument(result = exist_answer, file=file)
+            if doc.is_valid():
+                uploaded_file = doc.cleaned_data['file']
+                new_doc = TnxResultDocument(result = exist_answer, file=uploaded_file)
+                new_doc.save()
+                    
         else:
             # save answer to DB
             tnx_answer = TnxPdpaResult(
@@ -143,10 +146,10 @@ def pdpa_question(request, id):
                 script_result = script_result
             )
             tnx_answer.save()
-            if len(uploaded_documents) > 0:
-                files = request.FILES.getlist("file")
-                for file in files:
-                    TnxResultDocument(result = tnx_answer, file=file)
+            if doc.is_valid():
+                uploaded_file = doc.cleaned_data['file']
+                new_doc = TnxResultDocument(result = exist_answer, file=uploaded_file)
+                new_doc.save()
 
         # find next question
         counter = 0
@@ -251,7 +254,7 @@ def pdpa_result(request,id):
 @login_required
 def download_file(request, filename):
     # Construct the full file path
-    file_path = os.path.join(settings.MEDIA_ROOT, 'uploads', filename)
+    file_path = os.path.join(settings.MEDIA_ROOT, 'documents', filename)
     
     # Check if the file exists
     if not os.path.isfile(file_path):

@@ -16,7 +16,7 @@
             <a href="/" class="back-to-selection">Back to selection</a>
         </div>
     </header>
-    <form action="/sub-cat/{{sub_category.id}}/question/" method="post">
+    <form action="/sub-cat/{{sub_category.id}}/question/" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <input hidden name="sub_category" value="{{sub_category.id}}">
         <input hidden name="question" value="{{question.id}}">
@@ -62,12 +62,6 @@
                     {% if question.is_request_file is True %}
                         {{document_form.as_p}}
                     {% endif %}
-                    {% comment %} {% if question.file.name %}
-
-                    <a href="/{{question.file.name}}">
-                        <ion-icon name="document-attach-outline"></ion-icon>
-                        <span> Attachment <span></a>
-                    {% endif %} {% endcomment %}
                 </div>
                 <div class="actions">
                     {% if previous_question.id %}
