@@ -13,6 +13,10 @@ import os
 from django.db.models import Subquery
 import paramiko
 from .forms import TnxResultDocumentForm
+import csv
+from django.urls import reverse
+
+
 
 
 def validate_user(request):
@@ -345,6 +349,49 @@ def pdpa_cat_result(request, id):
         "all_result_list": all_result_list
     }
     return HttpResponse(template.render(context, request))
+
+@login_required
+def export_pdpa_report_csv(request, user_id):
+    # Get the user object
+    user = TnxPdpaUser.objects.get(id=user_id)
+
+    # Create the HttpResponse object with CSV content type
+    response = HttpResponse(content_type='text/csv')
+    
+    # Add a header to force the download of the file
+    response['Content-Disposition'] = f'attachment; filename="pdpa_report_{user}.csv"'
+
+    # Create a CSV writer
+    writer = csv.writer(response)
+
+    # Write the header row
+    writer.writerow(['Category', 'Subcategory', 'Question', 'Answer', 'Score', 'Result Text', 'Attachment URL'])
+
+    # Query results for the user
+    results = TnxPdpaResult.objects.filter(user=user)
+
+    # Write data rows
+    for result in results:
+        # Get the associated document, if any
+        document = TnxResultDocument.objects.filter(result=result).first()
+        document_url = ""
+        # If a document exists, generate the download URL; otherwise, leave blank
+        if document is not None:
+            document_url = f"http://127.0.0.1:8000/file/{document.file.name}"
+
+        # Write the result row with the document URL
+        writer.writerow([
+            result.get_category_name(),  # Category
+            result.get_sub_category_name(),  # Subcategory
+            result.question.question,  # Question
+            result.answer.answer,  # Answer
+            result.answer.score,  # Score
+            result.answer.result_text,  # Result Text
+            document_url  # Document URL (or 'No document')
+        ])
+
+    # Return the response to the user, triggering the download
+    return response
 
 def sign_out(request):
     # sign user out

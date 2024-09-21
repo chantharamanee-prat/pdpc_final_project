@@ -12,6 +12,7 @@ urlpatterns = [
     path('sub-cat/<int:id>/', views.fetch_sub_cat, name="fetch_sub_cat"),
     path('file/<str:filename>', views.download_file, name='downloaded_file'),
     path('cat/<int:id>/result', views.pdpa_cat_result, name="pdpa_cat_result"),
+    path('export/csv/<int:user_id>/', views.export_pdpa_report_csv, name='export_pdpa_report_csv'),
     path("404.html", views.not_found, name="not_found")
 ]
 

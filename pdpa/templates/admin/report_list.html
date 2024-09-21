@@ -1,0 +1,19 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+    <h1>Transaction PDPA result</h1>
+    <div class="card card-body border-0 shadow table-wrapper table-responsive">
+        {% for user in all_user  %}
+            <a href="/export/csv/{{user.id}}/">
+                <p>Download report for <b>{{user}}</b>                         
+                <ion-icon name="document-attach-outline"></ion-icon>
+                </p>
+            </a>
+
+        {% endfor %}
+    </div>
+
+    <!-- Icons from https://ionic.io/ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+{% endblock %}

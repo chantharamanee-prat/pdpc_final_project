@@ -81,6 +81,17 @@ class TnxPdpaResult(models.Model):
         verbose_name = "Transaction PDPA Result"  # Singular name
         verbose_name_plural = "Transaction PDPA Results"  # Plural name
 
+    def get_category_name(self):
+        return self.question.sub_category.category.name
+    
+    def get_sub_category_name(self):
+        return self.question.sub_category.name
+    
+    get_category_name.short_description = 'Category'
+
+    get_sub_category_name.short_description = "Sub Category"
+
+
 class TnxResultDocument(models.Model):
     result = models.ForeignKey(TnxPdpaResult, on_delete=models.CASCADE)
     file = models.FileField(upload_to='documents/', blank=True, null=True)
