@@ -43,8 +43,6 @@ class MstPdpaAnswer(models.Model):
         verbose_name_plural = "PDPA Answers"  # Plural name
 
 
-
-
 class MstPdpaQuestion(models.Model):
     sub_category = models.ForeignKey(MstPdpaSubCategory, on_delete=models.CASCADE)
     question = models.TextField()

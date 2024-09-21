@@ -22,8 +22,6 @@ def validate_user(request):
     except: 
         print("An Exception occured")
         
-    print(pre_user_id)
-
     return pre_user_id
 
 def sign_up(request: HttpRequest):
@@ -162,7 +160,8 @@ def pdpa_question(request, id):
         if counter < all_question.count():
             return redirect(f"/sub-cat/{sub_category_id}/question/?question_id={all_question[counter]['id']}")
         else:
-            return redirect(f"/sub-cat/{id}/result/")
+            # return redirect(f"/sub-cat/{id}/result/")
+            return redirect("/")
 
     else:
         # Get old results (answered questions)
@@ -306,24 +305,45 @@ def pdpa_cat_result(request, id):
 
     template = loader.get_template("result_cat.html")
     category = MstPdpaCategory.objects.get(id = id)
-    all_question = MstPdpaQuestion.objects.select_related().filter(sub_category__category__id=id)
     all_result = TnxPdpaResult.objects.all().filter(user = user_id, question__sub_category__category__id = id)
-
-    # if not all_result or all_result.count() < all_question.count():
-    #     return redirect(f"/sub-cat/{id}/question/")
     
     sum_score = 0
+    all_result_list = []
+
     for res in all_result:
         sum_score += res.answer.score
+        
+        sub_cate_found = False
+        for sub_cate in all_result_list:
+            if sub_cate['sub_cate']['name'] == res.question.sub_category.name:
+                # If subcategory is found, append the result to its res_list
+                sub_cate['sub_cate']['res_list'].append(res)
+                sub_cate_found = True
+                break
+        
+        # If subcategory is not found, create a new subcategory
+        if not sub_cate_found:
+            new_sub_cate = {
+                "sub_cate": {
+                    "name": res.question.sub_category.name,
+                    "res_list": [res]
+                }
+            }
+            all_result_list.append(new_sub_cate)
 
-    avg_score = sum_score / all_result.count()
+    avg_score = 0
+    if all_result.count() > 0:
+        avg_score = sum_score / all_result.count()
+
+    # print(list(all_result.values("question" , "answer")))
+    print(all_result_list)
 
     context = {
         'category' : category,
         'response': all_result,
-        'avg_score': avg_score
+        'avg_score': avg_score,
+        "all_result_list": all_result_list
     }
-    print(context)
     return HttpResponse(template.render(context, request))
 
 def sign_out(request):

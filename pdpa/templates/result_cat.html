@@ -19,20 +19,22 @@
         <section class="results">
             <div class="result-card">
                 <h2>Results for {{category}}</h2>
-                {% for resp in response %}
-
-                <div class="status implemented">{{resp.question.sub_category}}</div>
-                <div class="achievement">
-                    <h3>{{resp.question.question}}</h3>
-                    <h4 class="first">Result: {{resp.answer.answer}} ({{resp.answer.score}})</h4>
-                    <p >
-                    {% if resp.answer.result_text %}
-                        {{resp.answer.result_text}}
-                    {% endif %}
-                    </p>
-                </div>
+                {% for resp in all_result_list %}
+                    <div class="status partially-implemented">{{resp.sub_cate.name}}</div>
+                    {% for sub_res in resp.sub_cate.res_list %}
+                     <div class="status implemented">Question {{sub_res.question.sequence}}
+                     </div>
+                        <div class="achievement">
+                            <h3>{{sub_res.question.question}}</h3>
+                            <h4 class="first">Result: {{sub_res.answer.answer}} ({{sub_res.answer.score}})</h4>
+                            <p >
+                            {% if sub_res.answer.result_text %}
+                                {{sub_res.answer.result_text}}
+                            {% endif %}
+                            </p>
+                        </div>
+                    {% endfor %}
                 {% endfor %}
-
             </div>
             <div class="result-card">
                 <h2>Average Score: {{avg_score}}</h2>
