@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDPA Assessment Tool</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+  </head>
+
+  <body>
+    <header>
+      <div class="logo">
+        <h1>PDPA Assessment Tool for Organisations (PATO)</h1>
+      </div>
+      <nav>
+        <ul>
+          <li>login as <b>{{user}}</b></li>
+          <li><a href="/sign-out" class="feedback">Sign Out</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="assessment-categories">
+        <h2>Assessment Categories</h2>
+        <p>
+          To begin, please select your assessment categories. {% comment %}
+          Click <a href="#">here</a> for more information. {% endcomment %}
+        </p>
+
+        <div class="categories-grid">
+          {% for cat in all_cat %}
+
+          <div
+            class="category-card"
+            onclick="openSidebar('{{cat.id}}', '{{cat.name}}')"
+          >
+            <ion-icon class="icon-pdpa" name="{{cat.icon}}"></ion-icon>
+            <span>{{cat.name}}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; PDPA Compliance audit support system. All rights reserved.</p>
+    </footer>
+
+    <!-- Sidebar -->
+    <div id="mySidenav" class="sidenav">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeSidebar()"
+        >&times;</a
+      >
+      <section class="assessment-categories">
+        <h3 id="mainCateName">Categories</h3>
+
+        <div id="subCatContent"></div>
+      </section>
+    </div>
+
+    <!-- Icons from https://ionic.io/ionicons -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+    <script>
+      async function openSidebar(cateId, cateName) {
+        document.getElementById("mainCateName").innerText = cateName;
+        // fetch sub cate
+        var result = await fetch(`/sub-cat/${cateId}/`).then((res) =>
+          res.json()
+        );
+
+        var subCateContent = document.getElementById("subCatContent");
+        subCatContent.innerHTML = "";
+
+        for (const subCat of result) {
+          var achor = document.createElement("a");
+          achor.className = `sub-category ${
+            subCat.total_question === subCat.total_answer &&
+            subCat.total_question > 0
+              ? "finished"
+              : ""
+          }`;
+          achor.href = `sub-cat/${subCat.id}/question`;
+
+          achor.innerHTML = `<ion-icon class="icon-pdpa" name="${subCat.icon}"></ion-icon><span class="sized"></span><span>${subCat.name}</span>`;
+
+          if (subCat.total_question > 0) {
+            achor.innerHTML += `<span class="sum_question"> (${subCat.total_answer}/ ${subCat.total_question}) </span>`;
+          }
+
+          subCateContent.appendChild(achor);
+        }
+
+        document.getElementById("mySidenav").style.width = "30%";
+        let resultA = document.createElement("a");
+        resultA.className = "sub-category";
+        resultA.innerHTML = `<ion-icon class="icon-pdpa" name="document-outline"></ion-icon><span class="sized"></span><span>Result</span>`;
+        resultA.href = `/cat/${cateId}/result`;
+        subCatContent.appendChild(resultA);
+      }
+
+      function closeSidebar() {
+        document.getElementById("mySidenav").style.width = "0";
+        var subCateContent = document.getElementById("subCatContent");
+        subCateContent.innerHTML = "";
+      }
+    </script>
+  </body>
+</html>
