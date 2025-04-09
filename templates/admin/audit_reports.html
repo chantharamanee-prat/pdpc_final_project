@@ -2,50 +2,73 @@
 <h1>PDPA Audit Reports</h1>
 <div class="card card-body border-0 shadow table-wrapper table-responsive">
     {% for category, category_data in chart_data.items %}
-        <h2>{{ category }}</h2>
-        {% for question, question_data in category_data.items %}
-            <p>{{ question }}</p>
-            <canvas id="chart-{{ category|slugify }}-{{ question|slugify }}"></canvas>
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const ctx = document.getElementById('chart-{{ category|slugify }}-{{ question|slugify }}').getContext('2d');
-                    const myChart = new Chart(ctx, {
-                        type: 'bar', // Or 'pie', 'line', etc.
-                        data: {
-                            labels: [{% for answer, count in question_data.items %}"{{ answer }}",{% endfor %}],
-                            datasets: [{
-                                label: 'Answer Counts',
-                                data: [{% for answer, count in question_data.items %}{{ count }},{% endfor %}],
-                                backgroundColor: [
-                                    'rgba(255, 99, 132, 0.2)',
-                                    'rgba(54, 162, 235, 0.2)',
-                                    'rgba(255, 206, 86, 0.2)',
-                                    'rgba(75, 192, 192, 0.2)',
-                                    'rgba(153, 102, 255, 0.2)',
-                                    'rgba(255, 159, 64, 0.2)'
-                                ],
-                                borderColor: [
-                                    'rgba(255, 99, 132, 1)',
-                                    'rgba(54, 162, 235, 1)',
-                                    'rgba(255, 206, 86, 1)',
-                                    'rgba(75, 192, 192, 1)',
-                                    'rgba(153, 102, 255, 1)',
-                                    'rgba(255, 159, 64, 1)'
-                                ],
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-                });
-            </script>
-        {% endfor %}
+        <h2 class="mt-4 mb-3">{{ category }}</h2> {# Added margins for spacing #}
+        <div class="row"> {# Start a row for charts in this category #}
+            {% for question, question_data in category_data.items %}
+                <div class="col-12 col-md-6 mb-4"> {# Full width on small, half width on medium+ screens, bottom margin #}
+                    <div class="chart-container border rounded p-3 h-100"> {# Optional inner container for styling & ensure equal height #}
+                        <p><strong>{{ question }}</strong></p> {# Made question bold #}
+                        <div style="position: relative; height:300px"> {# Set a relative container with fixed height for canvas #}
+                            <canvas id="chart-{{ category|slugify }}-{{ question|slugify }}"></canvas>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const ctx = document.getElementById('chart-{{ category|slugify }}-{{ question|slugify }}').getContext('2d');
+                                new Chart(ctx, {
+                                    type: 'bar', // Or 'pie', 'line', etc.
+                                    data: {
+                                        labels: [{% for answer, count in question_data.items %}"{{ answer|escapejs }}",{% endfor %}],
+                                        datasets: [{
+                                            label: 'Answer Counts',
+                                            data: [{% for answer, count in question_data.items %}{{ count }},{% endfor %}],
+                                            backgroundColor: [ // Using slightly more opaque colors
+                                                'rgba(54, 162, 235, 0.5)', // Blue
+                                                'rgba(255, 99, 132, 0.5)', // Red
+                                                'rgba(255, 206, 86, 0.5)', // Yellow
+                                                'rgba(75, 192, 192, 0.5)', // Green
+                                                'rgba(153, 102, 255, 0.5)', // Purple
+                                                'rgba(255, 159, 64, 0.5)'  // Orange
+                                                // Add more colors if you expect more than 6 answers often
+                                            ],
+                                            borderColor: [
+                                                'rgba(54, 162, 235, 1)',
+                                                'rgba(255, 99, 132, 1)',
+                                                'rgba(255, 206, 86, 1)',
+                                                'rgba(75, 192, 192, 1)',
+                                                'rgba(153, 102, 255, 1)',
+                                                'rgba(255, 159, 64, 1)'
+                                            ],
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false, // Important for fitting in grid cells nicely
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    // Ensure integer steps if counts are always whole numbers
+                                                    stepSize: 1
+                                                }
+                                            }
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                display: false // Often cleaner to hide legend for simple bar charts unless comparing datasets
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+            {% endfor %}
+        </div> {# End row #}
+        {% if not loop.last %}
+             <hr class="my-4"> {# Add a separator between categories #}
+        {% endif %}
     {% endfor %}
 </div>
 

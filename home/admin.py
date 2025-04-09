@@ -4,7 +4,9 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from django.contrib import admin
-
+from django.contrib.admin.sites import AdminSite
+from django.urls import path
+from . import views
 from django.apps import apps
 from django.contrib import admin
 from django.http import HttpResponse

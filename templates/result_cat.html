@@ -10,16 +10,17 @@
   <body>
     <header>
       <div class="logo">
-        <h1>PDPA Assessment Tool for Organisations</h1>
+        <h1>PDPA Compliance Audit Support System</h1>
         <a href="/" class="back-to-selection">Back to Main</a>
       </div>
     </header>
 
     <main>
       <section class="results">
+        {% for data in all_data %}
         <div class="result-card">
-          <h2>Results for {{category.name}}</h2>
-          {% for resp in all_result_list %}
+          <h2>Results for {{data.category.name}}</h2>
+          {% for resp in data.all_result_list %}
           <div class="status partially-implemented">{{resp.sub_cate.name}}</div>
           {% for sub_res in resp.sub_cate.res_list %}
           <div class="status implemented">
@@ -36,9 +37,13 @@
             </p>
           </div>
           {% endfor %} {% endfor %}
+          <h3>Compliance Score: {{data.avg_score}}</h3>
         </div>
+        
+        {% endfor %}
+
         <div class="result-card">
-          <h2>Average Score: {{avg_score}}</h2>
+          <h2>All Compliance Score: {{all_score}}</h2>
         </div>
       </section>
     </main>

@@ -11,7 +11,7 @@ from django.utils import timezone
 class UserProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    company = models.ForeignKey(
+    company = models.OneToOneField(
         CompanyProfile,
         on_delete=models.CASCADE,
         null=True,  # Allow users to not be associated with a company initially. Consider using `blank=True` in the form.
@@ -28,8 +28,8 @@ class UserProfile(models.Model):
         return self.user.username
     
     class Meta:
-        verbose_name        = _("PDPA User Info")
-        verbose_name_plural = _("PDPA User Info")
+        verbose_name        = _("Connect to Server")
+        verbose_name_plural = _("Connect to Server")
 
 class PdpaCategory(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)

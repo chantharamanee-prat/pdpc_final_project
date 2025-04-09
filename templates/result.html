@@ -10,7 +10,7 @@
   <body>
     <header>
       <div class="logo">
-        <h1>PDPA Assessment Tool for Organisations</h1>
+        <h1>PDPA Compliance Audit Support System</h1>
         <a href="/" class="back-to-selection">Back to Main</a>
       </div>
     </header>
@@ -30,14 +30,13 @@
               Result: {{resp.answer.answer}} ({{resp.answer.score}})
             </h4>
             <p>
-              {% if resp.answer.result_text %} {{resp.answer.result_text}} 
-              {% endif %}
+              {% if resp.answer.result_text %} {{resp.answer.result_text}} {%endif %}
             </p>
           </div>
           {% endfor %}
         </div>
         <div class="result-card">
-          <h2>Average Score: {{avg_score}}</h2>
+          <h2>Compliance Score: {{avg_score}}</h2>
         </div>
       </section>
     </main>

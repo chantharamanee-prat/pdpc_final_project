@@ -11,7 +11,7 @@
   <body>
     <header>
       <div class="logo">
-        <h1>PDPA Assessment Tool for Organisations</h1>
+        <h1>PDPA Compliance Audit Support System</h1>
         <a href="/" class="back-to-selection">Back to selection</a>
       </div>
     </header>
@@ -76,8 +76,7 @@
               id="implemented-measures"
               placeholder="This could include policies, procedures, forms, response plans or contracts."
             ></textarea>
-            {% if question.is_request_file is True %} {{document_form.as_p}} 
-            {% endif %}
+            {% if question.is_request_file is True %} {{document_form.as_p}} {%endif %}
           </div>
           <div class="actions">
             {% if previous_question.id %}

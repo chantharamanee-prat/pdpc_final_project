@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from .models import PdpaCategory, PdpaSubCategory, PdpaQuestion, PdpaAnswer, TnxPdpaResult, TnxResultDocument, UserProfile, TnxAuditLog
 from django.http import HttpResponse, HttpRequest, Http404, FileResponse, JsonResponse
+from reports.models import CompanyProfile
+from django.db.models import Count, Avg, Q, Max
 from django.template import loader
 import uuid
 from django.contrib.auth.hashers import make_password
@@ -419,47 +421,59 @@ def pdpa_cat_result(request, id):
     user_id = validate_user(request)
 
     template = loader.get_template("result_cat.html")
-    category = PdpaCategory.objects.get(id=id)
-    all_result = TnxPdpaResult.objects.all().filter(user=request.user, question__sub_category__category__id=id)
+    all_cat = PdpaCategory.objects.all().order_by("sequence")
+    all_data = []
+    all_score = 0
+    for cat in all_cat:
 
-    sum_score = 0
-    all_result_list = []
+        category = PdpaCategory.objects.get(id=cat.id)
+        all_result = TnxPdpaResult.objects.all().filter(user=request.user, question__sub_category__category__id=cat.id)
 
-    for res in all_result:
-        sum_score += res.answer.score
+        sum_score = 0
+        all_result_list = []
 
-        sub_cate_found = False
-        for sub_cate in all_result_list:
-            if sub_cate['sub_cate']['name'] == res.question.sub_category.name:
-                # If subcategory is found, append the result to its res_list
-                sub_cate['sub_cate']['res_list'].append(res)
-                sub_cate_found = True
-                break
+        for res in all_result:
+            sum_score += res.answer.score
 
-        # If subcategory is not found, create a new subcategory
-        if not sub_cate_found:
-            new_sub_cate = {
-                "sub_cate": {
-                    "name": res.question.sub_category.name,
-                    "res_list": [res]
+            sub_cate_found = False
+            for sub_cate in all_result_list:
+                if sub_cate['sub_cate']['name'] == res.question.sub_category.name:
+                    # If subcategory is found, append the result to its res_list
+                    sub_cate['sub_cate']['res_list'].append(res)
+                    sub_cate_found = True
+                    break
+
+            # If subcategory is not found, create a new subcategory
+            if not sub_cate_found:
+                new_sub_cate = {
+                    "sub_cate": {
+                        "name": res.question.sub_category.name,
+                        "res_list": [res]
+                    }
                 }
-            }
-            all_result_list.append(new_sub_cate)
+                all_result_list.append(new_sub_cate)
 
-    avg_score = 0
-    if all_result.count() > 0:
-        avg_score = sum_score / all_result.count()
+        avg_score = 0
+        if all_result.count() > 0:
+            avg_score = sum_score / all_result.count()
 
-    # print(list(all_result.values("question" , "answer")))
-    print(all_result_list)
+        all_score += avg_score
 
+        data = {
+            'category': category,
+            'response': all_result,
+            'avg_score': avg_score,
+            "all_result_list": all_result_list
+        }
+
+        create_audit_log(request, request.user, 'pdpa_cat_result_page_view', content_object=category, status_code=200)
+        all_data.append(data)
+    
     context = {
-        'category': category,
-        'response': all_result,
-        'avg_score': avg_score,
-        "all_result_list": all_result_list
+        "all_data": all_data,
+        "all_score": all_score,
     }
-    create_audit_log(request, request.user, 'pdpa_cat_result_page_view', content_object=category, status_code=200)
+    print(context)
     return HttpResponse(template.render(context, request))
 
 
@@ -563,3 +577,227 @@ def run_ssh_command(hostname, port, username, password, command):
     finally:
         # Close the SSH connection
         ssh.close()
+
+@login_required
+def admin_dashboard(request):
+    """
+    View for custom admin dashboard displaying PDPA compliance metrics
+    """
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('/')
+    
+    # Section 1: Overall Audit Status
+    # 1.1 - Total companies in audit process
+    total_companies = CompanyProfile.objects.count()
+    
+    # Get companies with users who have audit results
+
+    # Identify companies that have not completed all questions in all categories
+    all_categories = PdpaCategory.objects.all()
+    total_questions = PdpaQuestion.objects.count()
+
+    companies_with_incomplete_audits = CompanyProfile.objects.filter(
+        users__user__tnxpdparesult__isnull=False,
+    ).distinct()
+
+    incomplete_companies_count = 0
+    for company in companies_with_incomplete_audits:
+        company_users = User.objects.filter(userprofile__company=company)
+        answered_questions = TnxPdpaResult.objects.filter(
+            user__in=company_users
+        ).values('question').distinct().count()
+
+        if answered_questions < total_questions:
+            incomplete_companies_count += 1
+
+    companies_with_results = incomplete_companies_count
+    
+    # 1.2 - Company audit status
+    
+    companies_in_progress = 0
+    companies_pending = 0
+    
+    # For simplicity, we'll consider:
+    # - Completed: All users of a company have at least one result
+    # - In progress: Some users of a company have at least one result
+    # - Pending: No users of a company have any results
+    
+
+    
+    # 1.3 - Completed audits + last update
+    # Find all categories and count total questions
+
+
+    # Find companies that have users who have answered all questions in all categories
+    completed_audits = 0
+
+    # Get all companies
+    companies = CompanyProfile.objects.all()
+
+    for company in companies:
+        # Get users associated with this company
+        company_users = UserProfile.objects.filter(company=company).values_list('user', flat=True)
+
+        if not company_users:
+            continue
+
+        # For each user in the company, check if they've answered all questions
+        all_questions_answered = True
+
+        for category in all_categories:
+            # Get all questions in this category across all subcategories
+            category_questions = PdpaQuestion.objects.filter(
+                sub_category__category=category
+            )
+
+            # For each user, verify they've answered all questions in this category
+            for user_id in company_users:
+                user_answers_count = TnxPdpaResult.objects.filter(
+                    user_id=user_id,
+                    question__in=category_questions
+                ).count()
+
+                if user_answers_count < category_questions.count():
+                    all_questions_answered = False
+                    break
+
+            if not all_questions_answered:
+                break
+
+        # If all users in the company have answered all questions in all categories
+        if all_questions_answered and company_users.exists():
+            completed_audits += 1
+    last_update = TnxAuditLog.objects.filter(
+        action__in=['pdpa_question_answered', 'pdpa_question_answer_updated']
+    ).aggregate(last_update=Max('timestamp'))['last_update']
+
+    companies_completed = completed_audits
+    companies_in_progress = companies_with_results
+    companies_pending = total_companies - companies_with_results - companies_completed
+    
+    # Section 2: PDPA Compliance Score
+    # 2.1 - Average scores
+    # Calculate average score across all answers
+    all_results = TnxPdpaResult.objects.all()
+    total_score = 0
+    total_count = 0
+    
+    for result in all_results:
+        if result.answer.score is not None:
+            total_score += result.answer.score
+            total_count += 1
+    
+    average_score_all = 0
+    if total_count > 0:
+        average_score_all = round(total_score / total_count, 2)
+    
+    # Calculate per-company scores
+    companies = CompanyProfile.objects.all()
+    company_scores = []
+    
+    for company in companies:
+        company_users = UserProfile.objects.filter(company=company).values_list('user', flat=True)
+        if company_users:
+            company_results = TnxPdpaResult.objects.filter(user__in=company_users)
+            company_score_total = 0
+            company_score_count = 0
+            
+            for result in company_results:
+                if result.answer.score is not None:
+                    company_score_total += result.answer.score
+                    company_score_count += 1
+            
+            if company_score_count > 0:
+                company_avg_score = round(company_score_total / company_score_count, 2)
+                company_scores.append({
+                    'name': company.name,
+                    'score': company_avg_score
+                })
+            else:
+                company_scores.append({
+                    'name': company.name,
+                    'score': 'ไม่มีข้อมูล'
+                })
+    
+    # 2.2 - Scores by category
+    categories = PdpaCategory.objects.all()
+    category_scores = []
+    
+    for category in categories:
+        category_results = TnxPdpaResult.objects.filter(
+            question__sub_category__category=category
+        )
+        
+        category_score_total = 0
+        category_score_count = 0
+        
+        for result in category_results:
+            if result.answer.score is not None:
+                category_score_total += result.answer.score
+                category_score_count += 1
+        
+        if category_score_count > 0:
+            category_avg_score = round(category_score_total / category_score_count, 2)
+            category_scores.append({
+                'name': category.name,
+                'score': category_avg_score
+            })
+        else:
+            category_scores.append({
+                'name': category.name,
+                'score': 'ไม่มีข้อมูล'
+            })
+    
+    # Section 3: Assessment Management
+    # 3.1 - Most used question categories
+    most_used_categories = PdpaCategory.objects.annotate(
+        count=Count('pdpasubcategory__pdpaquestion__tnxpdparesult')
+    ).order_by('-count')[:5]
+    
+    most_used_categories_list = []
+    for category in most_used_categories:
+        most_used_categories_list.append({
+            'name': category.name,
+            'count': category.count
+        })
+    
+    # 3.2 - Most frequently wrong questions
+    # We'll consider questions with low scores as "wrong" answers
+    # For simplicity, we'll assume scores below the median are "wrong"
+    
+    # 3.3 - Total questions count and by category
+    total_questions = PdpaQuestion.objects.count()
+    
+    question_categories = []
+    for category in categories:
+        question_count = PdpaQuestion.objects.filter(
+            sub_category__category=category
+        ).count()
+        
+        question_categories.append({
+            'name': category.name,
+            'count': question_count
+        })
+    
+    context = {
+        # Section 1: Overall Audit Status
+        'total_companies': total_companies,
+        'companies_completed': companies_completed,
+        'companies_in_progress': companies_in_progress,
+        'companies_pending': companies_pending,
+        'completed_audits': completed_audits,
+        'last_update_date': last_update,
+        
+        # Section 2: PDPA Compliance Score
+        'average_score_all': average_score_all,
+        'company_scores': company_scores,
+        'category_scores': category_scores,
+        
+        # Section 3: Assessment Management
+        'most_used_categories': most_used_categories_list,
+        'total_questions': total_questions,
+        'question_categories': question_categories,
+    }
+    
+    create_audit_log(request, request.user, 'admin_dashboard_view', status_code=200)
+    return render(request, 'admin/index.html', context)

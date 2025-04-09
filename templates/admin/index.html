@@ -3,19 +3,275 @@
 
 {% block extrastyle %}
     <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}">
+    <!-- Add Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
-
 {% block content %}
-    <div class="row mx-3 mt-5">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    
-                    <h2>Welcome to PDPA Compliance Audit Support System.</h2>
-         
+    <div class="container-fluid mt-4">
+        <h2>Welcome to PDPA Compliance Audit Support System.</h2>
+        
+        <!-- Section 1: Overall Audit Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title">สถานะการตรวจสอบภาพรวม (Overall Audit Status)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">จำนวนบริษัททั้งหมดที่เข้าสู่กระบวนการตรวจสอบ</h5>
+                                        <h2 class="display-4 mt-3">{{ total_companies }}</h2>
+                                        <p class="text-muted">บริษัท</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">สถานะการตรวจสอบ</h5>
+                                        <canvas id="auditStatusChart" width="400" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">การตรวจสอบที่เสร็จสมบูรณ์</h5>
+                                        <h2 class="display-4 mt-3">{{ completed_audits }}</h2>
+                                        <p class="text-muted">อัปเดตล่าสุด: {{ last_update_date }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section 2: PDPA Compliance Score -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="card-title">คะแนนการปฏิบัติตาม PDPA (PDPA Compliance Score)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">คะแนนเฉลี่ย</h5>
+                                        <div class="d-flex justify-content-around mt-3">
+                                            <div class="text-center">
+                                                <h3>{{ average_score_all }}</h3>
+                                                <p>คะแนนเฉลี่ยรวมทุกบริษัท</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h5>คะแนนเฉลี่ยแต่ละบริษัท</h5>
+                                    <canvas id="companyScoresChart" width="400" height="300"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-center">คะแนนตามหมวดหมู่</h5>
+                                        <div class="mt-3">
+                                            <canvas id="categoryScoresChart" width="400" height="300"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Section 3: Assessment Management -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h3 class="card-title">การจัดการคำถามและคำตอบ (Assessment Management)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-center">หมวดคำถามที่มีการใช้งานมากที่สุด</h5>
+                                        <canvas id="mostUsedCategoriesChart" width="400" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">จำนวนคำถามทั้งหมดในระบบ</h5>
+                                        <h2 class="display-4 mt-3">{{ total_questions }}</h2>
+                                        <p class="text-muted">คำถาม</p>
+                                        
+                                        <div class="mt-4">
+                                            <h6>แบ่งตามหมวดหมู่</h6>
+                                            <canvas id="questionCategoriesChart" width="400" height="250"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- JavaScript for charts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1.2 Audit Status Chart
+            new Chart(document.getElementById('auditStatusChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['ตรวจสอบแล้ว', 'อยู่ระหว่างตรวจสอบ', 'รอเริ่มตรวจ'],
+                    datasets: [{
+                        data: [{{ companies_completed }}, {{ companies_in_progress }}, {{ companies_pending }}],
+                        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // 2.1 Company Scores Chart
+            new Chart(document.getElementById('companyScoresChart'), {
+                type: 'bar',
+                data: {
+                    labels: [{% for company in company_scores %}'{{ company.name }}',{% endfor %}],
+                    datasets: [{
+                        label: 'คะแนนเฉลี่ย',
+                        data: [{% for company in company_scores %}{{ company.score }},{% endfor %}],
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // 2.2 Category Scores Chart
+            new Chart(document.getElementById('categoryScoresChart'), {
+                type: 'radar',
+                data: {
+                    labels: [{% for category in category_scores %}'{{ category.name }}',{% endfor %}],
+                    datasets: [{
+                        label: 'คะแนนเฉลี่ย',
+                        data: [{% for category in category_scores %}{{ category.score }},{% endfor %}],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(75, 192, 192, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // 3.1 Most Used Categories Chart
+            new Chart(document.getElementById('mostUsedCategoriesChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: [{% for category in most_used_categories %}'{{ category.name }}',{% endfor %}],
+                    datasets: [{
+                        data: [{% for category in most_used_categories %}{{ category.count }},{% endfor %}],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(153, 102, 255, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // 3.3 Question Categories Chart
+            new Chart(document.getElementById('questionCategoriesChart'), {
+                type: 'pie',
+                data: {
+                    labels: [{% for category in question_categories %}'{{ category.name }}',{% endfor %}],
+                    datasets: [{
+                        data: [{% for category in question_categories %}{{ category.count }},{% endfor %}],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 {% endblock %}

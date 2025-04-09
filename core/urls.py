@@ -5,6 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django.contrib import admin
 from django.urls import path, include
+from home.views import admin_dashboard
 
 try:
     from rest_framework.authtoken.views import obtain_auth_token
@@ -13,7 +14,10 @@ except:
 
 urlpatterns = [
     path('', include("home.urls")),
-    path("admin/", admin.site.urls),
+    # Override the admin index with our custom dashboard
+    path("admin/", admin_dashboard, name="admin_dashboard"),
+    # Original admin site is now available at /admin/default/
+    path("admin/default/", admin.site.urls),
     path("", include("admin_volt.urls")),
 ]
 
