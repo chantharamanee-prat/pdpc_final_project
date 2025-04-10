@@ -198,13 +198,14 @@ def pdpa_question(request, id):
         relate_question = PdpaQuestion.objects.get(pk=question_id)
         relate_answer = PdpaAnswer.objects.get(pk=answer_id)
         user = request.user # Use the adjusted User model
-        user_info = UserProfile.objects.get(user=user)
 
         doc = TnxResultDocumentForm(request.POST, request.FILES)
 
         script_result = None
 
         try:
+            
+            user_info = UserProfile.objects.get(user=user)
             if relate_answer.script:
                 script_result = run_ssh_command(
                     user_info.ssh_server, user_info.ssh_port, user_info.ssh_user, user_info.ssh_password, relate_answer.script
@@ -471,7 +472,7 @@ def pdpa_cat_result(request, id):
     
     context = {
         "all_data": all_data,
-        "all_score": all_score,
+        "all_score": all_score / all_cat.count(),
     }
     print(context)
     return HttpResponse(template.render(context, request))
