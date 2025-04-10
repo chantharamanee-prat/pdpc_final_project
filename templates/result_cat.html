@@ -17,6 +17,22 @@
 
     <main>
       <section class="results">
+        <div class="result-card">
+          <h2>All Compliance Score: {{all_score}}</h2>
+          <p>
+            Grade: 
+            {% if all_score >= 85 %}
+              A
+            {% elif all_score >= 70 %}
+              B
+            {% elif all_score >= 50 %}
+              C
+            {% else %}
+              D
+            {% endif %}
+          </p>
+        </div>
+
         {% for data in all_data %}
         <div class="result-card">
           <h2>Results for {{data.category.name}}</h2>
@@ -42,9 +58,7 @@
         
         {% endfor %}
 
-        <div class="result-card">
-          <h2>All Compliance Score: {{all_score}}</h2>
-        </div>
+
       </section>
     </main>
 
