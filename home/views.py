@@ -20,6 +20,8 @@ import csv
 from django.urls import reverse
 import json
 import logging
+from pprint import pprint
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -717,7 +719,7 @@ def admin_dashboard(request):
             else:
                 company_scores.append({
                     'name': company.name,
-                    'score': 'ไม่มีข้อมูล'
+                    'score': 0
                 })
     
     # 2.2 - Scores by category
@@ -746,9 +748,8 @@ def admin_dashboard(request):
         else:
             category_scores.append({
                 'name': category.name,
-                'score': 'ไม่มีข้อมูล'
+                'score': 0
             })
-    
     # Section 3: Assessment Management
     # 3.1 - Most used question categories
     most_used_categories = PdpaCategory.objects.annotate(
@@ -799,6 +800,8 @@ def admin_dashboard(request):
         'total_questions': total_questions,
         'question_categories': question_categories,
     }
+
+    pprint(context)
     
     create_audit_log(request, request.user, 'admin_dashboard_view', status_code=200)
     return render(request, 'admin/index.html', context)
