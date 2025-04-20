@@ -681,7 +681,7 @@ def admin_dashboard(request):
     # Section 2: PDPA Compliance Score
     # 2.1 - Average scores
     # Calculate average score across all answers
-    all_results = TnxPdpaResult.objects.all()
+    all_results = TnxPdpaResult.objects.filter(user__userprofile__company__isnull=False)
     total_score = 0
     total_count = 0
     
