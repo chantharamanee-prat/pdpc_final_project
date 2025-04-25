@@ -310,7 +310,6 @@ def pdpa_question(request, id):
 
         display_question_number = f"0{question.sequence}" if question.sequence < 10 else question.sequence
 
-        progress = [{"number": i + 1, "class": "active" if i + 1 == question.sequence else "inactive"} for i in range(all_question.count())]
 
         previous_q = PdpaQuestion.objects.select_related().filter(sub_category=id, sequence=question.sequence - 1).values()
 
@@ -321,6 +320,19 @@ def pdpa_question(request, id):
 
         document_form = TnxResultDocumentForm()
 
+        answered_questions_count = TnxPdpaResult.objects.filter(
+            user=request.user,
+            question__sub_category__id=id
+        ).count()
+        current_question_in_subcategory = 0
+        for index, q in enumerate(all_question):
+            if q['id'] == question.id:
+                current_question_in_subcategory = index + 1
+                break
+
+        progress = [{"number": i + 1, "class": "active" if i + 1 == current_question_in_subcategory else "inactive"} for i in range(all_question.count())]
+
+
         question_context = {
             'sub_category': sub_category,
             'question_sequence': question.sequence,
@@ -328,6 +340,7 @@ def pdpa_question(request, id):
             'display_question_number': display_question_number,
             'question': question,
             'answer': answer,
+            'current_question_in_subcategory': current_question_in_subcategory,
             'previous_question': previous,
             'progress': progress,
             'exist_answer': exist_answer,
@@ -335,8 +348,6 @@ def pdpa_question(request, id):
         }
         create_audit_log(request, request.user, 'pdpa_question_page_view', content_object=question, status_code=200)
         return HttpResponse(question_template.render(question_context, request))
-
-
 @login_required
 def pdpa_result(request, id):
     user_id = validate_user(request)
