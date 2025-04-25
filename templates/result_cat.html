@@ -37,43 +37,40 @@
        
         <div class="result-card">
           <h2>Results for {{data.category.name}}</h2>
-          {% if data.zero_score_details %} {# Check if there are zero score details #}
-            {% for sub_category_name, questions in data.zero_score_details.items %} {# Iterate over grouped zero score details #}
-              <div class="status partially-implemented">{{ sub_category_name }}</div> {# Display sub-category name #}
-              {% for zero in questions %} {# Iterate over questions within the sub-category #}
+          {% for sub_category_name, questions in data.combined_results.items %}
+            <div class="status partially-implemented">{{ sub_category_name }}</div>
+            {% for item in questions %}
+              {% if item.type == 'answered' %}
                 <div class="status implemented">
-                  Question {{zero.sequence}}
+                  Question {{item.data.question.sequence}}
                 </div>
                 <div class="achievement">
-                  <h3>{{zero.question}}</h3>
+                  <h3>{{item.data.question.question}}</h3>
                   <h4 class="first">
-                    Result: {{zero.answers__answer}} ({{zero.answers__score}})
+                    Result: {{item.data.answer.answer}} ({{item.data.answer.score}})
                   </h4>
                   <p>
-                    {% if zero.answers__result_text %} {{zero.answers__result_text}}
+                    {% if item.data.answer.result_text %} {{item.data.answer.result_text}}
                     {% endif %}
                   </p>
                 </div>
-              {% endfor %}
-            {% endfor %}
-          {% endif %}
-          {% for resp in data.all_result_list %}
-          <div class="status partially-implemented">{{resp.sub_cate.name}}</div>
-          {% for sub_res in resp.sub_cate.res_list %}
-          <div class="status implemented">
-            Question {{sub_res.question.sequence}}
-          </div>
-          <div class="achievement">
-            <h3>{{sub_res.question.question}}</h3>
-            <h4 class="first">
-              Result: {{sub_res.answer.answer}} ({{sub_res.answer.score}})
-            </h4>
-            <p>
-              {% if sub_res.answer.result_text %} {{sub_res.answer.result_text}}
+              {% elif item.type == 'unanswered' %}
+                <div class="status implemented">
+                  Question {{item.data.question.sequence}}
+                </div>
+                <div class="achievement">
+                  <h3>{{item.data.question.question}}</h3>
+                  <h4 class="first">
+                    Result: {{item.data.answer.answer}} ({{item.data.answer.score}})
+                  </h4>
+                  <p>
+                    {% if item.data.answer.result_text %} {{item.data.answer.result_text}}
+                    {% endif %}
+                  </p>
+                </div>
               {% endif %}
-            </p>
-          </div>
-          {% endfor %} {% endfor %}
+            {% endfor %}
+          {% endfor %}
           <h3>Compliance Score: {{data.avg_score}}</h3>
         </div>
         

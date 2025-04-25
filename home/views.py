@@ -458,6 +458,34 @@ def pdpa_cat_result(request, id):
         if all_result.count() > 0:
             avg_score = sum_score / all_result.count()
 
+        all_category_questions = PdpaQuestion.objects.filter(
+            sub_category__category=cat
+        )
+
+        answered_question_ids = all_result.values_list('question__id', flat=True)
+
+        unanswered_questions = all_category_questions.exclude(
+            id__in=answered_question_ids
+        ).order_by("sequence")
+
+        unanswered_zero_details = []
+        for question in unanswered_questions:
+            zero_answer = question.answers.filter(score=0).first()
+            if zero_answer:
+                unanswered_zero_details.append({
+                    'question': question,
+                    'answer': zero_answer,
+                    'sub_category_name': question.sub_category.name,
+                    'question_sequence': question.sequence,
+                })
+
+        unanswered_zero_details_grouped = {}
+        for item in unanswered_zero_details:
+            sub_category_name = item['sub_category_name']
+            if sub_category_name not in unanswered_zero_details_grouped:
+                unanswered_zero_details_grouped[sub_category_name] = []
+            unanswered_zero_details_grouped[sub_category_name].append(item)
+
         all_score += avg_score
 
         zero_score_questions_answers = PdpaQuestion.objects.filter(
@@ -480,13 +508,48 @@ def pdpa_cat_result(request, id):
                 zero_score_details_grouped[sub_category_name] = []
             zero_score_details_grouped[sub_category_name].append(item)
 
+        # Debug print to check unanswered_zero_details_grouped
+        print("unanswered_zero_details_grouped:")
+        pprint(unanswered_zero_details_grouped)
+
+        # Combine answered and unanswered questions and group by subcategory
+        combined_results_grouped = {}
+
+        # Add answered questions
+        for sub_cate_data in all_result_list:
+            sub_category_name = sub_cate_data['sub_cate']['name']
+            if sub_category_name not in combined_results_grouped:
+                combined_results_grouped[sub_category_name] = []
+            for res in sub_cate_data['sub_cate']['res_list']:
+                combined_results_grouped[sub_category_name].append({
+                    'type': 'answered',
+                    'sequence': res.question.sequence,
+                    'data': res
+                })
+
+        # Add unanswered questions
+        for sub_category_name, questions in unanswered_zero_details_grouped.items():
+            if sub_category_name not in combined_results_grouped:
+                combined_results_grouped[sub_category_name] = []
+            for zero in questions:
+                 combined_results_grouped[sub_category_name].append({
+                    'type': 'unanswered',
+                    'sequence': zero['question_sequence'],
+                    'data': zero
+                })
+
+        # Sort questions within each subcategory by sequence
+        for sub_category_name in combined_results_grouped:
+            combined_results_grouped[sub_category_name].sort(key=lambda x: x['sequence'])
 
         data = {
             'category': category,
-            'response': all_result,
+            'response': all_result, # Keep for backward compatibility if needed elsewhere
             'avg_score': avg_score,
-            "all_result_list": all_result_list,
-            "zero_score_details": zero_score_details_grouped # Use the grouped data
+            "all_result_list": all_result_list, # Keep for backward compatibility if needed elsewhere
+            "zero_score_details": zero_score_details_grouped, # Keep for backward compatibility if needed elsewhere
+            "unanswered_zero_details": unanswered_zero_details_grouped, # Keep for backward compatibility if needed elsewhere
+            "combined_results": combined_results_grouped # Add combined and sorted results
         }
 
         create_audit_log(request, request.user, 'pdpa_cat_result_page_view', content_object=category, status_code=200)
