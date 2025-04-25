@@ -34,8 +34,26 @@
         </div>
 
         {% for data in all_data %}
+       
         <div class="result-card">
           <h2>Results for {{data.category.name}}</h2>
+          {% if not data.all_result_list %}
+            {% for zero in data.zero_score_details %}
+            <div class="status implemented">
+              Question {{zero.sequence}}
+            </div>
+            <div class="achievement">
+              <h3>{{zero.question}}</h3>
+              <h4 class="first">
+                Result: {{zero.answers__answer}} ({{zero.answers__score}})
+              </h4>
+              <p>
+                {% if zero.answers__result_text %} {{zero.answers__result_text}}
+                {% endif %}
+              </p>
+            </div>
+            {% endfor %}
+          {% endif %}
           {% for resp in data.all_result_list %}
           <div class="status partially-implemented">{{resp.sub_cate.name}}</div>
           {% for sub_res in resp.sub_cate.res_list %}

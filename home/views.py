@@ -273,10 +273,8 @@ def pdpa_question(request, id):
             return redirect("/")
 
     else:
-        # Get old results (answered questions)
         old_result = TnxPdpaResult.objects.select_related().filter(user=request.user, question__sub_category__id=id).values('question_id')
 
-        # If all questions are answered, redirect to result
         if old_result.count() == all_question.count() and all_question.count() > 0:
             return redirect(f"/sub-cat/{id}/result/")
 
@@ -462,11 +460,23 @@ def pdpa_cat_result(request, id):
 
         all_score += avg_score
 
+        zero_score_questions_answers = PdpaQuestion.objects.filter(
+            sub_category__category=cat,
+            answers__score=0
+        ).values(
+            'question',
+            'sequence',
+            'answers__answer',
+            'answers__score',
+            'answers__result_text'
+        )
+
         data = {
             'category': category,
             'response': all_result,
             'avg_score': avg_score,
-            "all_result_list": all_result_list
+            "all_result_list": all_result_list,
+            "zero_score_details": list(zero_score_questions_answers)
         }
 
         create_audit_log(request, request.user, 'pdpa_cat_result_page_view', content_object=category, status_code=200)

@@ -82,7 +82,7 @@ class TnxPdpaResultAdmin(admin.ModelAdmin, ExportCsvMixin):
 
     def changelist_view(self, request, extra_context=None):
 
-        all_user = User.objects.filter(is_staff=False, is_superuser=False)
+        all_user = User.objects.all()
         context = {
             'all_user': all_user
         }
