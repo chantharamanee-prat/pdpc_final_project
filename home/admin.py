@@ -15,6 +15,8 @@ from django.contrib.auth.models import User
 from .forms import CustomPdpaQuestionForm
 from .models import UserProfile, PdpaCategory, PdpaQuestion, PdpaAnswer, TnxPdpaResult, PdpaSubCategory, TnxAuditLog
 import csv
+from django.template.defaultfilters import truncatechars
+
 
 class ExportCsvMixin:
     def export_as_csv(self, request, queryset):
@@ -64,10 +66,19 @@ class PdpaSubCategoryAdmin(admin.ModelAdmin):
 @admin.register(PdpaQuestion)
 class PdpaQuestionAdmin(admin.ModelAdmin):
     form = CustomPdpaQuestionForm
-    list_display = ( "question",'get_category_name',"sub_category", "sequence")
+    list_display = ( "short_question",'get_category_sequence',"get_sub_category_sequence", "sequence")
     filter_horizontal = ('answers',)
+
+    def short_question(self,obj):
+        if len(obj.question) > 30:
+            return truncatechars(obj.question, 30) + "..."
+        
+        return obj.question
+            
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
+
+    short_question.short_description = "Question"
 @admin.register(PdpaAnswer)
 class PdpaAnswerAdmin(admin.ModelAdmin):
     list_display = ("name","answer", "sequence", "score")

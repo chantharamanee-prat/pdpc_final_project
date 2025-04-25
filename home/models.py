@@ -6,6 +6,7 @@ from reports.models import CompanyProfile
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+
 # Create your models here.
 
 class UserProfile(models.Model):
@@ -87,10 +88,15 @@ class PdpaQuestion(models.Model):
         verbose_name = "PDPA Question" 
         verbose_name_plural = "PDPA Questions"
     
-    def get_category_name(self):
-        return self.sub_category.category.name
+    def get_category_sequence(self):
+        return self.sub_category.category.sequence
     
-    get_category_name.short_description = 'Category'
+    def get_sub_category_sequence(self):
+        return self.sub_category.sequence
+    
+    
+    get_category_sequence.short_description = 'Category'
+    get_sub_category_sequence.short_description = 'Sub Category'
 
 class TnxPdpaResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
