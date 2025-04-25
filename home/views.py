@@ -468,15 +468,25 @@ def pdpa_cat_result(request, id):
             'sequence',
             'answers__answer',
             'answers__score',
-            'answers__result_text'
+            'answers__result_text',
+            'sub_category',
+            'sub_category__name',
         )
+
+        zero_score_details_grouped = {}
+        for item in zero_score_questions_answers:
+            sub_category_name = item['sub_category__name']
+            if sub_category_name not in zero_score_details_grouped:
+                zero_score_details_grouped[sub_category_name] = []
+            zero_score_details_grouped[sub_category_name].append(item)
+
 
         data = {
             'category': category,
             'response': all_result,
             'avg_score': avg_score,
             "all_result_list": all_result_list,
-            "zero_score_details": list(zero_score_questions_answers)
+            "zero_score_details": zero_score_details_grouped # Use the grouped data
         }
 
         create_audit_log(request, request.user, 'pdpa_cat_result_page_view', content_object=category, status_code=200)
